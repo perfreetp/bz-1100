@@ -1,0 +1,152 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md $page-padding;
+  background-color: $color-bg-card;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.headerInfo {
+  flex: 1;
+  margin-left: $spacing-md;
+}
+
+.userName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.userStatus {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.moreIcon {
+  padding: $spacing-sm;
+  font-size: 36rpx;
+}
+
+.messagesList {
+  flex: 1;
+  padding: $spacing-lg $page-padding;
+  overflow-y: auto;
+}
+
+.dateDivider {
+  text-align: center;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin: $spacing-md 0;
+}
+
+.messageRow {
+  display: flex;
+  margin-bottom: $spacing-lg;
+
+  &.isMine {
+    flex-direction: row-reverse;
+  }
+}
+
+.messageAvatar {
+  flex-shrink: 0;
+}
+
+.messageBubble {
+  max-width: 70%;
+  margin: 0 $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-lg;
+  background-color: $color-bg-card;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-normal;
+  word-break: break-all;
+  white-space: pre-wrap;
+  box-shadow: $shadow-sm;
+}
+
+.isMine .messageBubble {
+  background: $color-primary-gradient;
+  color: $color-text-white;
+}
+
+.messageTime {
+  font-size: $font-size-xxs;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+  padding: 0 $spacing-md;
+}
+
+.isMine .messageTime {
+  text-align: right;
+}
+
+.inputBar {
+  display: flex;
+  align-items: flex-end;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(env(safe-area-inset-bottom) + #{$spacing-md});
+  background-color: $color-bg-card;
+  border-top: 1rpx solid $color-divider;
+  gap: $spacing-md;
+}
+
+.inputWrap {
+  flex: 1;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-md;
+  min-height: 72rpx;
+  max-height: 200rpx;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 48rpx;
+  max-height: 168rpx;
+  font-size: $font-size-md;
+  line-height: $line-height-normal;
+  color: $color-text-primary;
+  background-color: transparent;
+}
+
+.iconBtn {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  font-size: 36rpx;
+}
+
+.sendBtn {
+  height: 72rpx;
+  padding: 0 $spacing-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-primary-gradient;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}
+
+.sendBtn:disabled {
+  background: $color-bg-hover;
+  color: $color-text-tertiary;
+}

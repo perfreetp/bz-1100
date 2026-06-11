@@ -1,0 +1,182 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(79, 70, 229, 0.05) 100%);
+  padding: $spacing-lg $page-padding;
+  backdrop-filter: blur(20px);
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.brand {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  background: $color-primary-gradient;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  background-color: $color-bg-card;
+  border-radius: $radius-button;
+  padding: 0 $spacing-lg;
+  height: $button-height-md;
+  box-shadow: $shadow-card;
+}
+
+.searchIcon {
+  font-size: 32rpx;
+  margin-right: $spacing-sm;
+  opacity: 0.5;
+}
+
+.searchText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.tabs {
+  display: flex;
+  margin-top: $spacing-lg;
+  gap: $spacing-xl;
+  overflow-x: auto;
+
+  @include scroll-x-container;
+}
+
+.tab {
+  @include scroll-x-item(auto);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: $spacing-sm;
+  position: relative;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.tabText {
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+}
+
+.activeTab {
+  .tabText {
+    color: $color-text-primary;
+    font-weight: $font-weight-bold;
+    font-size: 36rpx;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48rpx;
+    height: 6rpx;
+    background: $color-primary-gradient;
+    border-radius: 3rpx;
+  }
+}
+
+.content {
+  padding: $spacing-md $page-padding $spacing-xl;
+}
+
+.hotSection {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+}
+
+.fireIcon {
+  margin-right: $spacing-xs;
+}
+
+.moreLink {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.hotList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.hotItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm 0;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.rank {
+  width: 40rpx;
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-text-tertiary;
+  text-align: center;
+}
+
+.rankTop {
+  color: $color-error;
+}
+
+.hotTitle {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  @include text-ellipsis;
+  margin: 0 $spacing-sm;
+}
+
+.hotCount {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.postsList {
+  padding-top: $spacing-xs;
+}

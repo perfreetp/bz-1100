@@ -1,0 +1,240 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: 160rpx;
+}
+
+.authorBar {
+  display: flex;
+  align-items: center;
+  padding: $spacing-lg $page-padding;
+  background-color: $color-bg-card;
+}
+
+.authorInfo {
+  flex: 1;
+  margin-left: $spacing-md;
+  min-width: 0;
+}
+
+.authorName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.authorMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.followBtn {
+  @include button-reset;
+  padding: 8rpx 32rpx;
+  height: 64rpx;
+  border-radius: $radius-button;
+  background: $color-primary-gradient;
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+
+  &:active {
+    opacity: 0.9;
+  }
+
+  &.followed {
+    background-color: $color-bg-hover;
+    background: none;
+    color: $color-text-tertiary;
+  }
+}
+
+.content {
+  padding: $spacing-lg $page-padding;
+  background-color: $color-bg-card;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  line-height: $line-height-tight;
+  margin-bottom: $spacing-md;
+}
+
+.description {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  line-height: $line-height-loose;
+}
+
+.imagesSection {
+  padding: $spacing-lg $page-padding;
+  background-color: $color-bg-card;
+  margin-top: $spacing-sm;
+}
+
+.imagesList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.imageItem {
+  width: 100%;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  background-color: $color-bg-hover;
+}
+
+.image {
+  width: 100%;
+  display: block;
+}
+
+.sectionBlock {
+  background-color: $color-bg-card;
+  margin-top: $spacing-sm;
+  padding: $spacing-lg $page-padding;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+}
+
+.sectionIcon {
+  margin-right: $spacing-xs;
+}
+
+.promptBox {
+  background-color: $color-bg-secondary;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  border-left: 6rpx solid $color-primary;
+}
+
+.promptText {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-normal;
+  font-family: 'SF Mono', Monaco, monospace;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.processText {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  line-height: $line-height-loose;
+  white-space: pre-wrap;
+}
+
+.tagsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-md;
+}
+
+.topicsWrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.commentsSection {
+  background-color: $color-bg-card;
+  margin-top: $spacing-sm;
+  padding: $spacing-lg $page-padding;
+}
+
+.commentsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.commentsTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.commentsCount {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(env(safe-area-inset-bottom) + #{$spacing-md});
+  box-shadow: 0 -2rpx 16rpx rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.inputBar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: $button-height-md;
+  padding: 0 $spacing-lg;
+  background-color: $color-bg-hover;
+  border-radius: $radius-button;
+}
+
+.inputIcon {
+  font-size: 32rpx;
+  margin-right: $spacing-sm;
+  opacity: 0.5;
+}
+
+.inputText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.actionBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rpx 0;
+  min-width: 64rpx;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.actionIcon {
+  font-size: 40rpx;
+  margin-bottom: 2rpx;
+}
+
+.actionText {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+}
+
+.active {
+  .actionText.like {
+    color: $color-error;
+  }
+  .actionText.collect {
+    color: $color-warning;
+  }
+}

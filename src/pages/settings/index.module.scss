@@ -1,0 +1,118 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: calc(env(safe-area-inset-bottom) + #{$spacing-2xl});
+}
+
+.sectionGroup {
+  background-color: $color-bg-card;
+  margin-top: $spacing-sm;
+}
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md $page-padding;
+  min-height: 100rpx;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.settingIcon {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: $spacing-md;
+  font-size: 40rpx;
+}
+
+.settingContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.settingLabel {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.settingDesc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.settingValue {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-right: $spacing-xs;
+}
+
+.settingArrow {
+  font-size: 36rpx;
+  color: $color-text-tertiary;
+}
+
+.switch {
+  width: 100rpx;
+  height: 56rpx;
+  border-radius: 999rpx;
+  background-color: $color-bg-hover;
+  position: relative;
+  transition: all 0.3s;
+
+  &.on {
+    background: $color-primary-gradient;
+  }
+}
+
+.switchKnob {
+  position: absolute;
+  top: 4rpx;
+  left: 4rpx;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background-color: $color-text-white;
+  box-shadow: $shadow-sm;
+  transition: all 0.3s;
+}
+
+.switch.on .switchKnob {
+  left: 48rpx;
+}
+
+.dangerRow .settingLabel {
+  color: $color-error;
+}
+
+.logoutBtn {
+  @include button-reset;
+  margin: $spacing-xl $page-padding;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background-color: $color-bg-card;
+  font-size: $font-size-md;
+  color: $color-error;
+  font-weight: $font-weight-semibold;
+
+  &:active {
+    background-color: $color-bg-hover;
+  }
+}
+
+.sectionTitle {
+  padding: $spacing-md $page-padding $spacing-xs;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-weight: $font-weight-medium;
+}

@@ -1,0 +1,53 @@
+@use '@/styles/variables.scss' as *;
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: $spacing-md;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 0;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.icon {
+  font-size: 36rpx;
+  margin-right: $spacing-xs;
+}
+
+.text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.active {
+  .icon {
+    filter: none;
+  }
+
+  &.like {
+    .icon {
+      color: $color-error;
+    }
+    .text {
+      color: $color-error;
+    }
+  }
+
+  &.collect {
+    .icon {
+      color: $color-warning;
+    }
+    .text {
+      color: $color-warning;
+    }
+  }
+}

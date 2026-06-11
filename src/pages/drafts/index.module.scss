@@ -1,0 +1,175 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+}
+
+.draftList {
+  padding: $spacing-md $page-padding;
+}
+
+.draftCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-sm;
+}
+
+.draftHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.typeTag {
+  padding: 4rpx 20rpx;
+  border-radius: $radius-button;
+  background: rgba(124, 58, 237, 0.1);
+  font-size: $font-size-xs;
+  color: #7C3AED;
+  font-weight: $font-weight-medium;
+}
+
+.draftTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.draftTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  line-height: $line-height-normal;
+  margin-bottom: $spacing-xs;
+  @include text-ellipsis-lines(2);
+}
+
+.draftContent {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+  margin-bottom: $spacing-md;
+  @include text-ellipsis-lines(3);
+}
+
+.draftImgs {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.draftImg {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-sm;
+  background-color: $color-bg-hover;
+}
+
+.draftFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: $spacing-sm;
+  border-top: 1rpx solid $color-divider;
+}
+
+.tags {
+  display: flex;
+  gap: $spacing-xs;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.miniTag {
+  font-size: $font-size-xxs;
+  color: $color-text-tertiary;
+  padding: 2rpx 12rpx;
+  background-color: $color-bg-hover;
+  border-radius: $radius-sm;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.actionBtn {
+  @include button-reset;
+  padding: $spacing-xs $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.actionBtnPrimary {
+  color: #7C3AED;
+  font-weight: $font-weight-semibold;
+}
+
+.actionBtnDanger {
+  color: $color-error;
+}
+
+.emptyWrap {
+  padding: $spacing-2xl $page-padding;
+}
+
+.selectBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $page-padding;
+  background-color: $color-bg-card;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.selectBarLeft {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.selectBtn {
+  @include button-reset;
+  padding: $spacing-xs $spacing-md;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.selectBtnActive {
+  color: #7C3AED;
+  font-weight: $font-weight-semibold;
+}
+
+.checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid #D1D5DB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.checkboxChecked {
+  background: $color-primary-gradient;
+  border-color: transparent;
+}
+
+.checkIcon {
+  color: $color-text-white;
+  font-size: 24rpx;
+  line-height: 1;
+}
+
+.draftCardWrap {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}

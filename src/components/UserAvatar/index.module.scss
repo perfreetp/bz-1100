@@ -1,0 +1,34 @@
+@use '@/styles/variables.scss' as *;
+
+.avatar {
+  border-radius: $radius-round;
+  overflow: hidden;
+  background-color: $color-bg-hover;
+  flex-shrink: 0;
+
+  &.sm {
+    width: 56rpx;
+    height: 56rpx;
+  }
+
+  &.md {
+    width: 80rpx;
+    height: 80rpx;
+  }
+
+  &.lg {
+    width: 120rpx;
+    height: 120rpx;
+  }
+
+  &.xl {
+    width: 160rpx;
+    height: 160rpx;
+  }
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

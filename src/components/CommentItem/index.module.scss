@@ -1,0 +1,86 @@
+@use '@/styles/variables.scss' as *;
+
+.item {
+  display: flex;
+  padding: $spacing-md 0;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.contentWrap {
+  flex: 1;
+  margin-left: $spacing-md;
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.name {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 12rpx;
+  background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+  border-radius: $radius-xs;
+  margin-left: $spacing-xs;
+  font-size: 20rpx;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}
+
+.text {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-normal;
+  margin-bottom: $spacing-xs;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.time {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.likeBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 0;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.likeIcon {
+  font-size: 28rpx;
+  margin-right: 4rpx;
+}
+
+.likeText {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.liked {
+  .likeText {
+    color: $color-error;
+  }
+}

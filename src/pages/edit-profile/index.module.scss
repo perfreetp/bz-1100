@@ -1,0 +1,132 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: calc(env(safe-area-inset-bottom) + #{$spacing-2xl});
+}
+
+.avatarSection {
+  background-color: $color-bg-card;
+  padding: $spacing-xl $page-padding;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin-bottom: $spacing-sm;
+}
+
+.avatarLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-top: $spacing-sm;
+}
+
+.formGroup {
+  background-color: $color-bg-card;
+  margin-bottom: $spacing-sm;
+}
+
+.formRow {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md $page-padding;
+  border-bottom: 1rpx solid $color-divider;
+  min-height: 100rpx;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.formLabel {
+  width: 160rpx;
+  flex-shrink: 0;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.formInput {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  text-align: right;
+}
+
+.formValue {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  text-align: right;
+}
+
+.formArrow {
+  font-size: 32rpx;
+  color: $color-text-tertiary;
+  margin-left: $spacing-xs;
+}
+
+.sectionTitle {
+  padding: $spacing-md $page-padding;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  font-weight: $font-weight-medium;
+}
+
+.badgesList {
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+}
+
+.badgeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.badgeItem {
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-button;
+  background-color: $color-bg-hover;
+  border: 2rpx solid transparent;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.badgeItemActive {
+  background: rgba(124, 58, 237, 0.08);
+  border-color: #7C3AED;
+}
+
+.badgeIcon {
+  font-size: 32rpx;
+}
+
+.badgeName {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.badgeItemActive .badgeName {
+  color: #7C3AED;
+  font-weight: $font-weight-medium;
+}
+
+.saveBtn {
+  @include button-reset;
+  margin: $spacing-xl $page-padding;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background: $color-primary-gradient;
+  font-size: $font-size-md;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+  box-shadow: 0 4rpx 16rpx rgba(124, 58, 237, 0.3);
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
