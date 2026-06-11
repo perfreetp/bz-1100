@@ -4,7 +4,8 @@ import Taro, { useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import { mockModelTags, mockTopics } from '@/data/topics';
 import useAppStore from '@/store/useAppStore';
-import type { ModelTag, Topic } from '@/types';
+import { defaultCurrentUser } from '@/data/users';
+import type { ModelTag, Topic, User } from '@/types';
 import styles from './index.module.scss';
 
 const publishTypes = [
@@ -27,6 +28,8 @@ const PublishPage: React.FC = () => {
     addQuestion,
     currentUser
   } = useAppStore();
+
+  const user: User = currentUser || defaultCurrentUser;
 
   const [activeType, setActiveType] = useState(0);
   const [title, setTitle] = useState('');
@@ -169,7 +172,7 @@ const PublishPage: React.FC = () => {
 
     const typeKey = publishTypes[activeType].key as 'prompt' | 'work' | 'qa';
     const now = new Date().toISOString();
-    const author = currentUser;
+    const author = user;
     const modelTags = getSelectedModelsData();
     const topics = getSelectedTopicsData();
 

@@ -72,7 +72,7 @@ const TopicDetailPage: React.FC = () => {
   };
 
   const topicPosts = topic
-    ? posts.filter(p => p.topics?.some(t => t.id === topic.id)).slice(0, 5)
+    ? posts.filter(p => p.topics?.some(t => t.id === topic.id)).slice(0, 20)
     : [];
 
   if (!topic) {
@@ -83,35 +83,40 @@ const TopicDetailPage: React.FC = () => {
     );
   }
 
+  const safeName = topic.name || '话题';
+  const safeDesc = topic.description || '暂无话题描述';
+  const safePostsCount = topic.postsCount || 0;
+  const safeMembersCount = topic.membersCount || membersCount || 0;
+
   return (
     <View className={styles.container}>
       <ScrollView scrollY>
         <View className={styles.banner}>
           <Image
             className={styles.bannerImg}
-            src={topic.cover}
+            src={topic.cover || ''}
             mode="aspectFill"
             onError={(e) => console.error('[TopicDetail] 封面加载失败:', e)}
           />
           <View className={styles.bannerOverlay}>
             <View className={styles.bannerContent}>
-              <Text className={styles.topicName}>#{topic.name}</Text>
+              <Text className={styles.topicName}>#{safeName}</Text>
               <Text className={styles.topicMeta}>
-                {formatCount(topic.postsCount)}帖子 · {formatCount(membersCount)}成员
+                {formatCount(safePostsCount)}帖子 · {formatCount(safeMembersCount)}成员
               </Text>
             </View>
           </View>
         </View>
 
         <View className={styles.infoSection}>
-          <Text className={styles.desc}>{topic.description}</Text>
+          <Text className={styles.desc}>{safeDesc}</Text>
           <View className={styles.statsRow}>
             <View className={styles.stat}>
-              <Text className={styles.statValue}>{formatCount(topic.postsCount)}</Text>
+              <Text className={styles.statValue}>{formatCount(safePostsCount)}</Text>
               <Text className={styles.statLabel}>帖子数</Text>
             </View>
             <View className={styles.stat}>
-              <Text className={styles.statValue}>{formatCount(membersCount)}</Text>
+              <Text className={styles.statValue}>{formatCount(safeMembersCount)}</Text>
               <Text className={styles.statLabel}>成员数</Text>
             </View>
             <View className={styles.stat}>

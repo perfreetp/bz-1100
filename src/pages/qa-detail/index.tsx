@@ -9,6 +9,8 @@ import TopicTag from '@/components/TopicTag';
 import CommentItem from '@/components/CommentItem';
 import EmptyState from '@/components/EmptyState';
 import useAppStore from '@/store/useAppStore';
+import { defaultCurrentUser } from '@/data/users';
+import type { User } from '@/types';
 import styles from './index.module.scss';
 
 const QaDetailPage: React.FC = () => {
@@ -26,6 +28,7 @@ const QaDetailPage: React.FC = () => {
     addHistory
   } = useAppStore();
 
+  const user: User = currentUser || defaultCurrentUser;
   const question = getQuestion(questionId);
   const [followed, setFollowed] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -84,7 +87,7 @@ const QaDetailPage: React.FC = () => {
 
   const handleAdopt = (answerId: string) => {
     if (!question) return;
-    if (question.author.id !== currentUser?.id) {
+    if (question.author.id !== user.id) {
       Taro.showToast({ title: '只能采纳自己提问的回答', icon: 'none' });
       return;
     }
@@ -98,6 +101,33 @@ const QaDetailPage: React.FC = () => {
     setLiked(!liked);
   };
 
+  const handleMore = () => {
+    if (!question) return;
+    Taro.showActionSheet({
+      itemList: ['举报内容', '屏蔽用户', '复制链接'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          Taro.showToast({ title: '举报已提交', icon: 'none' });
+        } else if (res.tapIndex === 1) {
+          Taro.showModal({
+            title: '屏蔽用户',
+            content: `确定要屏蔽 ${question.author.name} 吗？`,
+            confirmColor: '#EF4444',
+            success: (r) => {
+              if (r.confirm) {
+                blockUser(question.author.id);
+                Taro.showToast({ title: '已屏蔽', icon: 'success' });
+              }
+            }
+          });
+        } else if (res.tapIndex === 2) {
+          Taro.setClipboardData({ data: `https://aichuangyi.com/qa/${question.id}` });
+        }
+      },
+      fail: () => {}
+    });
+  };
+
   if (!question) {
     return (
       <View className={styles.container} style={{ paddingTop: 200 }}>
@@ -106,16 +136,23 @@ const QaDetailPage: React.FC = () => {
     );
   }
 
-  const isMyQuestion = question.author.id === currentUser?.id;
+  const isMyQuestion = question.author.id === user.id;
+  const safeAuthor = question.author || { id: '', name: '匿名用户', avatar: '' };
+  const safeAnswers = question.answers || [];
+
+  const handleTopicClick = (topicId: string, e: any) => {
+    e?.stopPropagation?.();
+    Taro.navigateTo({ url: `/pages/topic-detail/index?id=${topicId}` });
+  };
 
   return (
     <View className={styles.container}>
       <ScrollView scrollY>
         <View className={styles.questionCard}>
           <View className={styles.authorRow}>
-            <UserAvatar src={question.author.avatar} size="lg" />
+            <UserAvatar src={safeAuthor.avatar || ''} size="lg" />
             <View className={styles.authorInfo}>
-              <Text className={styles.authorName}>{question.author.name}</Text>
+              <Text className={styles.authorName}>{safeAuthor.name || '匿名用户'}</Text>
               <Text className={styles.meta}>{formatTime(question.createdAt)}</Text>
             </View>
             {!isMyQuestion && (
@@ -126,10 +163,15 @@ const QaDetailPage: React.FC = () => {
                 <Text>{followed ? '已关注' : '关注'}</Text>
               </View>
             )}
+            {!isMyQuestion && (
+              <View style={{ marginLeft: 16 }} onClick={handleMore}>
+                <Text style={{ fontSize: 32 }}>⋯</Text>
+              </View>
+            )}
           </View>
 
-          <Text className={styles.title}>{question.title}</Text>
-          <Text className={styles.content}>{question.content}</Text>
+          <Text className={styles.title}>{question.title || '无标题'}</Text>
+          <Text className={styles.content}>{question.content || '暂无内容'}</Text>
 
           {question.modelTags && question.modelTags.length > 0 && (
             <View className={styles.tags}>
@@ -142,7 +184,11 @@ const QaDetailPage: React.FC = () => {
           {question.topics && question.topics.length > 0 && (
             <View className={styles.topics}>
               {question.topics.map(topic => (
-                <TopicTag key={topic.id} name={topic.name} />
+                <TopicTag
+                  key={topic.id}
+                  name={topic.name}
+                  onClick={(e) => handleTopicClick(topic.id, e)}
+                />
               ))}
             </View>
           )}
@@ -150,15 +196,15 @@ const QaDetailPage: React.FC = () => {
           <View className={styles.statsRow}>
             <View className={styles.stat}>
               <Text className={styles.statIcon}>👀</Text>
-              <Text>{formatNumber(question.views)} 浏览</Text>
+              <Text>{formatNumber(question.views || 0)} 浏览</Text>
             </View>
             <View className={styles.stat}>
               <Text className={styles.statIcon}>💬</Text>
-              <Text>{question.answers.length} 回答</Text>
+              <Text>{safeAnswers.length} 回答</Text>
             </View>
             <View className={styles.stat} onClick={handleLike}>
               <Text className={styles.statIcon}>{liked ? '❤️' : '🤍'}</Text>
-              <Text>{formatNumber(question.likes)} 赞同</Text>
+              <Text>{formatNumber(question.likes || 0)} 赞同</Text>
             </View>
           </View>
         </View>
@@ -166,11 +212,11 @@ const QaDetailPage: React.FC = () => {
         <View className={styles.answersSection}>
           <View className={styles.answersHeader}>
             <Text className={styles.answersTitle}>全部回答</Text>
-            <Text className={styles.answersCount}>{question.answers.length} 个回答</Text>
+            <Text className={styles.answersCount}>{safeAnswers.length} 个回答</Text>
           </View>
 
-          {question.answers.length > 0 ? (
-            question.answers.map(answer => (
+          {safeAnswers.length > 0 ? (
+            safeAnswers.map(answer => (
               <View key={answer.id} className={styles.answerCard}>
                 <CommentItem data={answer} showBest />
                 {isMyQuestion && !answer.isBest && (

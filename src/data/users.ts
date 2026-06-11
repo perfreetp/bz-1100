@@ -72,3 +72,6 @@ export const mockCurrentUser: User = {
     { id: '2', name: '提示词专家', icon: '✨' }
   ]
 };
+
+export const currentUser = mockCurrentUser;
+export const defaultCurrentUser = mockCurrentUser;

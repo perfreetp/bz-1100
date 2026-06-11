@@ -3,20 +3,24 @@ import { View, Text, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import useAppStore from '@/store/useAppStore';
+import { defaultCurrentUser } from '@/data/users';
 import { formatTime } from '@/utils';
 import EmptyState from '@/components/EmptyState';
+import type { User } from '@/types';
 import styles from './index.module.scss';
 
 const typeNameMap: Record<string, string> = {
   prompt: '提示词心得',
   work: '作品',
-  question: '问答'
+  qa: '问答'
 };
 
 const DraftsPage: React.FC = () => {
   const { drafts, removeDraft, getDraft, addPost, addWork, addQuestion, currentUser } = useAppStore();
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const user: User = currentUser || defaultCurrentUser;
 
   const toggleSelect = (id: string) => {
     if (selectedIds.includes(id)) {
@@ -84,7 +88,7 @@ const DraftsPage: React.FC = () => {
         if (!res.confirm) return;
 
         const now = new Date().toISOString();
-        const author = currentUser;
+        const author = user;
 
         if (draft.type === 'work') {
           addWork({
@@ -106,7 +110,7 @@ const DraftsPage: React.FC = () => {
             isCollected: false,
             createdAt: now
           });
-        } else if (draft.type === 'question') {
+        } else if (draft.type === 'qa') {
           addQuestion({
             id: draft.id,
             author,
