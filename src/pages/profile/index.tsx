@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import useAppStore from '@/store/useAppStore';
 import { defaultCurrentUser } from '@/data/users';
@@ -9,70 +9,112 @@ import { formatCount } from '@/utils';
 import PostCard from '@/components/PostCard';
 import WorkCard from '@/components/WorkCard';
 import EmptyState from '@/components/EmptyState';
+import UserAvatar from '@/components/UserAvatar';
 import type { User, Post, Work } from '@/types';
 import styles from './index.module.scss';
 
 const tabs = ['动态', '作品', '收藏'];
 
 const ProfilePage: React.FC = () => {
-  const { currentUser, posts, works } = useAppStore();
+  const routerParams = Taro.getCurrentInstance().router?.params || {};
+  const userIdParam = routerParams?.userId as string | undefined;
+
+  const {
+    currentUser,
+    posts,
+    works,
+    getUser,
+    toggleFollow,
+    isFollowing,
+    getChatSessions,
+    sendChatMessage
+  } = useAppStore();
+
   const [activeTab, setActiveTab] = useState(0);
+  const [followed, setFollowed] = useState(false);
 
-  const user: User = currentUser || defaultCurrentUser;
+  const me: User = currentUser || defaultCurrentUser;
+  const isMe = !userIdParam || userIdParam === me.id;
 
-  const myPosts = useMemo((): Post[] => {
+  const user: User = useMemo(() => {
+    if (isMe) return me;
+    const found = getUser(userIdParam || '');
+    return found || defaultCurrentUser;
+  }, [userIdParam, isMe, me, getUser]);
+
+  const userPosts = useMemo((): Post[] => {
     return posts.filter(p => p.author.id === user.id);
   }, [posts, user.id]);
 
-  const myWorks = useMemo((): Work[] => {
+  const userWorks = useMemo((): Work[] => {
     return works.filter(w => w.author.id === user.id);
   }, [works, user.id]);
 
-  const allWorks = myWorks.length > 0 ? myWorks : mockWorks;
+  const allWorks = userWorks.length > 0 ? userWorks : (isMe ? mockWorks : []);
+
+  useDidShow(() => {
+    if (!isMe) {
+      setFollowed(isFollowing(user.id));
+    }
+  });
 
   const handleSettings = () => {
-    console.log('[Profile] 点击设置');
     Taro.navigateTo({ url: '/pages/settings/index' });
   };
 
   const handleEditProfile = () => {
-    console.log('[Profile] 编辑个人资料');
     Taro.navigateTo({ url: '/pages/edit-profile/index' });
   };
 
   const handleHistory = () => {
-    console.log('[Profile] 浏览历史');
     Taro.navigateTo({ url: '/pages/history/index' });
   };
 
   const handleDrafts = () => {
-    console.log('[Profile] 草稿箱');
     Taro.navigateTo({ url: '/pages/drafts/index' });
   };
 
+  const handleFollow = () => {
+    if (isMe) return;
+    toggleFollow(user.id);
+    const newFollowed = !followed;
+    setFollowed(newFollowed);
+    Taro.showToast({
+      title: newFollowed ? '关注成功' : '已取消关注',
+      icon: 'none'
+    });
+  };
+
+  const handleChat = () => {
+    if (isMe) return;
+    const sessions = getChatSessions();
+    const existing = sessions.find(s => s.user.id === user.id);
+    if (existing) {
+      Taro.navigateTo({ url: `/pages/chat/index?id=${existing.id}` });
+    } else {
+      Taro.showToast({ title: '开始私信吧', icon: 'none' });
+    }
+  };
+
   const handleLinkClick = (link: string) => {
-    console.log('[Profile] 点击快捷入口:', link);
     Taro.showToast({ title: `${link}功能`, icon: 'none' });
   };
 
   return (
     <View className={styles.container}>
       <View className={styles.header}>
-        <View className={styles.settingsIcon} onClick={handleSettings}>
-          <Text>⚙️</Text>
-        </View>
+        {isMe && (
+          <View className={styles.settingsIcon} onClick={handleSettings}>
+            <Text>⚙️</Text>
+          </View>
+        )}
 
         <View className={styles.userInfo}>
           <View className={styles.avatarWrap}>
-            <Image
-              className={styles.avatar}
-              src={user.avatar}
-              mode="aspectFill"
-              onError={(e) => console.error('[Profile] 头像加载失败:', e)}
-            />
+            <UserAvatar src={user.avatar || ''} size="lg" />
           </View>
           <View className={styles.userMeta}>
-            <Text className={styles.userName}>{user.name}</Text>
+            <Text className={styles.userName}>{user.name || '匿名用户'}</Text>
             {user.badges && user.badges.length > 0 && (
               <View className={styles.badges}>
                 {user.badges.map(badge => (
@@ -90,7 +132,7 @@ const ProfilePage: React.FC = () => {
 
       <View className={styles.stats}>
         <View className={styles.statItem}>
-          <Text className={styles.statValue}>{formatCount(myWorks.length)}</Text>
+          <Text className={styles.statValue}>{formatCount(allWorks.length)}</Text>
           <Text className={styles.statLabel}>作品</Text>
         </View>
         <View className={styles.statItem}>
@@ -107,33 +149,49 @@ const ProfilePage: React.FC = () => {
         </View>
       </View>
 
-      <View className={styles.actionRow}>
-        <View className={styles.editBtn} onClick={handleEditProfile}>
-          <Text>编辑资料</Text>
+      {isMe ? (
+        <View className={styles.actionRow}>
+          <View className={styles.editBtn} onClick={handleEditProfile}>
+            <Text>编辑资料</Text>
+          </View>
+          <View className={styles.shareBtn}>
+            <Text>📤</Text>
+          </View>
         </View>
-        <View className={styles.shareBtn}>
-          <Text>📤</Text>
+      ) : (
+        <View className={styles.actionRow}>
+          <View
+            className={classnames(styles.followBtn, followed && styles.followed)}
+            onClick={handleFollow}
+          >
+            <Text>{followed ? '已关注' : '+ 关注'}</Text>
+          </View>
+          <View className={styles.chatBtn} onClick={handleChat}>
+            <Text>💬 私信</Text>
+          </View>
         </View>
-      </View>
+      )}
 
-      <View className={styles.quickLinks}>
-        <View className={styles.linkItem} onClick={handleHistory}>
-          <Text className={styles.linkIcon}>🕐</Text>
-          <Text className={styles.linkText}>浏览历史</Text>
+      {isMe && (
+        <View className={styles.quickLinks}>
+          <View className={styles.linkItem} onClick={handleHistory}>
+            <Text className={styles.linkIcon}>🕐</Text>
+            <Text className={styles.linkText}>浏览历史</Text>
+          </View>
+          <View className={styles.linkItem} onClick={handleDrafts}>
+            <Text className={styles.linkIcon}>📝</Text>
+            <Text className={styles.linkText}>草稿箱</Text>
+          </View>
+          <View className={styles.linkItem} onClick={() => handleLinkClick('我的话题')}>
+            <Text className={styles.linkIcon}>💬</Text>
+            <Text className={styles.linkText}>我的话题</Text>
+          </View>
+          <View className={styles.linkItem} onClick={() => handleLinkClick('我的问答')}>
+            <Text className={styles.linkIcon}>❓</Text>
+            <Text className={styles.linkText}>我的问答</Text>
+          </View>
         </View>
-        <View className={styles.linkItem} onClick={handleDrafts}>
-          <Text className={styles.linkIcon}>📝</Text>
-          <Text className={styles.linkText}>草稿箱</Text>
-        </View>
-        <View className={styles.linkItem} onClick={() => handleLinkClick('我的话题')}>
-          <Text className={styles.linkIcon}>💬</Text>
-          <Text className={styles.linkText}>我的话题</Text>
-        </View>
-        <View className={styles.linkItem} onClick={() => handleLinkClick('我的问答')}>
-          <Text className={styles.linkIcon}>❓</Text>
-          <Text className={styles.linkText}>我的问答</Text>
-        </View>
-      </View>
+      )}
 
       <View className={styles.tabs}>
         {tabs.map((tab, idx) => (
@@ -150,10 +208,10 @@ const ProfilePage: React.FC = () => {
       <View style={{ paddingTop: 24 }}>
         {activeTab === 0 && (
           <View className={styles.contentList}>
-            {myPosts.length > 0 ? (
-              myPosts.map(post => <PostCard key={post.id} post={post} />)
+            {userPosts.length > 0 ? (
+              userPosts.map(post => <PostCard key={post.id} post={post} />)
             ) : (
-              <EmptyState icon="📝" title="还没有动态" desc="快去发布你的第一条动态吧" />
+              <EmptyState icon="📝" title="还没有动态" desc={isMe ? '快去发布你的第一条动态吧' : 'TA还没有发布动态'} />
             )}
           </View>
         )}
@@ -169,7 +227,7 @@ const ProfilePage: React.FC = () => {
                 ))}
               </View>
             ) : (
-              <EmptyState icon="🎨" title="还没有作品" desc="快去发布你的第一个作品吧" />
+              <EmptyState icon="🎨" title="还没有作品" desc={isMe ? '快去发布你的第一个作品吧' : 'TA还没有发布作品'} />
             )}
           </View>
         )}

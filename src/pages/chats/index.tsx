@@ -1,19 +1,29 @@
-import React from 'react';
-import { View, Text, ScrollView, Image } from '@tarojs/components';
+import React, { useMemo, useState } from 'react';
+import { View, Text, ScrollView } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import useAppStore from '@/store/useAppStore';
 import { formatTime } from '@/utils';
+import UserAvatar from '@/components/UserAvatar';
 import EmptyState from '@/components/EmptyState';
+import type { ChatSession } from '@/types';
 import styles from './index.module.scss';
 
 const ChatsPage: React.FC = () => {
-  const { getChatSessions, isBlocked, toggleChatBlock } = useAppStore();
-  const sessions = getChatSessions();
+  const chatSessions = useAppStore(state => state.chatSessions);
+  const { isBlocked, toggleChatBlock } = useAppStore();
+  const [tick, setTick] = useState(0);
 
   useDidShow(() => {
-    console.log('[Chats] useDidShow - 会话数:', sessions.length);
+    setTick(t => t + 1);
   });
+
+  const sessions = useMemo((): ChatSession[] => {
+    void tick;
+    return [...chatSessions].sort((a, b) =>
+      new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+    );
+  }, [chatSessions, tick]);
 
   const handleSessionClick = (sessionId: string, blocked: boolean) => {
     if (blocked) {
@@ -57,83 +67,66 @@ const ChatsPage: React.FC = () => {
     });
   };
 
+  const getLastMsg = (s: ChatSession) => {
+    if (!s.messages || s.messages.length === 0) return '';
+    return s.messages[s.messages.length - 1].content;
+  };
+
   return (
     <View className={styles.container}>
-      <ScrollView scrollY>
-        {sessions.length > 0 ? (
-          <View className={styles.sessionList}>
-            {sessions.map((session) => {
-              const lastMsg = session.messages[session.messages.length - 1];
-              const blocked = session.isBlocked || isBlocked(session.user.id);
+      <View className={styles.header}>
+        <Text className={styles.title}>私信</Text>
+      </View>
 
-              return (
-                <View
-                  key={session.id}
-                  className={classnames(styles.sessionItem, blocked && styles.blocked)}
-                  onClick={() => handleSessionClick(session.id, blocked)}
-                >
-                  <View className={styles.avatarWrap}>
-                    <Image
-                      className={styles.avatar}
-                      src={session.user.avatar}
-                      mode="aspectFill"
-                      onError={(e) => console.error('[Chats] 头像加载失败:', e)}
-                    />
-                    {session.unreadCount > 0 && !blocked && (
-                      <View className={styles.badge}>
-                        <Text className={styles.badgeText}>
-                          {session.unreadCount > 99 ? '99+' : session.unreadCount}
-                        </Text>
-                      </View>
-                    )}
+      {sessions.length > 0 ? (
+        <ScrollView scrollY className={styles.sessionList}>
+          {sessions.map(session => {
+            const blocked = session.isBlocked || isBlocked(session.user.id);
+            const lastMsg = getLastMsg(session);
+            return (
+              <View
+                key={session.id}
+                className={classnames(styles.sessionItem, blocked && styles.blocked)}
+                onClick={() => handleSessionClick(session.id, blocked)}
+              >
+                <View className={styles.avatarWrap}>
+                  <UserAvatar src={session.user.avatar || ''} size="md" />
+                  {session.unreadCount > 0 && !blocked && (
+                    <View className={styles.unreadBadge}>
+                      <Text className={styles.unreadText}>
+                        {session.unreadCount > 99 ? '99+' : session.unreadCount}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <View className={styles.sessionInfo}>
+                  <View className={styles.sessionHead}>
+                    <Text className={styles.userName}>
+                      {session.user.name || '匿名用户'}
+                    </Text>
+                    <Text className={styles.time}>
+                      {formatTime(session.lastMessageAt)}
+                    </Text>
                   </View>
-
-                  <View className={styles.sessionInfo}>
-                    <View className={styles.sessionHeader}>
-                      <Text className={styles.userName}>
-                        {session.user.name || '匿名用户'}
-                      </Text>
-                      <Text className={styles.time}>
-                        {lastMsg ? formatTime(lastMsg.createdAt) : ''}
-                      </Text>
-                    </View>
-                    <View className={styles.lastRow}>
-                      <Text className={classnames(styles.lastMessage, blocked && styles.blockedText)}>
-                        {blocked
-                          ? '[该用户已被屏蔽]'
-                          : lastMsg
-                            ? lastMsg.content
-                            : '暂无消息'}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View className={styles.actions}>
-                    {blocked && (
-                      <View
-                        className={styles.unblockHint}
-                        onClick={(e) => handleBlockToggle(session.id, true, e)}
-                      >
-                        <Text>已屏蔽</Text>
-                      </View>
-                    )}
-                    <View
-                      className={styles.moreBtn}
-                      onClick={(e) => handleMore(session.id, blocked, e)}
-                    >
-                      <Text>⋯</Text>
-                    </View>
+                  <View className={styles.sessionBottom}>
+                    <Text className={styles.lastMsg}>
+                      {blocked ? '[该用户已被屏蔽]' : lastMsg}
+                    </Text>
+                    {blocked && <Text className={styles.blockedTag}>已屏蔽</Text>}
                   </View>
                 </View>
-              );
-            })}
-          </View>
-        ) : (
-          <View style={{ paddingTop: 200 }}>
-            <EmptyState icon="💬" title="暂无私信" desc="与感兴趣的创作者私信交流吧" />
-          </View>
-        )}
-      </ScrollView>
+
+                <View className={styles.moreBtn} onClick={(e) => handleMore(session.id, blocked, e)}>
+                  <Text>⋯</Text>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+      ) : (
+        <EmptyState icon="💬" title="还没有私信" desc="去发现更多创作者，开始交流吧～" />
+      )}
     </View>
   );
 };

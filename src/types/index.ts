@@ -82,6 +82,7 @@ export interface Question {
   topics?: Topic[];
   likes: number;
   views: number;
+  comments?: number;
   isLiked?: boolean;
   createdAt: string;
 }

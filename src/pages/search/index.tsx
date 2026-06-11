@@ -204,7 +204,7 @@ const SearchPage: React.FC = () => {
         Taro.navigateTo({ url: `/pages/topic-detail/index?id=${result.targetId}` });
         break;
       case 'author':
-        Taro.showToast({ title: '用户主页', icon: 'none' });
+        Taro.navigateTo({ url: `/pages/profile/index?userId=${result.targetId}` });
         break;
     }
   }, []);

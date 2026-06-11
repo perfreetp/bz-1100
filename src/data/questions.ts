@@ -12,6 +12,7 @@ export const mockQuestions: Question[] = [
     topics: [mockTopics[2], mockTopics[6]],
     likes: 156,
     views: 2340,
+    comments: 89,
     isLiked: false,
     bestAnswerId: 'a1',
     answers: [
@@ -42,6 +43,7 @@ export const mockQuestions: Question[] = [
     topics: [mockTopics[1]],
     likes: 234,
     views: 3450,
+    comments: 156,
     isLiked: true,
     answers: [
       {
@@ -63,6 +65,7 @@ export const mockQuestions: Question[] = [
     topics: [mockTopics[7]],
     likes: 456,
     views: 5670,
+    comments: 0,
     isLiked: false,
     answers: [],
     createdAt: '2024-06-05T10:00:00Z'

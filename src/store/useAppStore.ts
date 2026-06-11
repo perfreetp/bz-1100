@@ -136,6 +136,8 @@ interface AppState {
   toggleJoinTopic: (topicId: string) => void;
   isJoinedTopic: (topicId: string) => boolean;
 
+  getUser: (userId: string) => User | undefined;
+
   addPost: (post: Post) => void;
   getPost: (id: string) => Post | undefined;
 
@@ -288,6 +290,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   isJoinedTopic: (topicId) => get().joinedTopics.includes(topicId),
 
+  getUser: (userId) => get().users.find(u => u.id === userId),
+
   addPost: (post) => {
     set((state) => {
       const newPosts = [post, ...state.posts];
@@ -344,7 +348,28 @@ export const useAppStore = create<AppState>((set, get) => ({
       return { questions: newQuestions, posts: newPosts };
     });
   },
-  getQuestion: (id) => get().questions.find(q => q.id === id),
+  getQuestion: (id) => {
+    const q = get().questions.find(q => q.id === id);
+    if (q) return q;
+    const post = get().posts.find(p => p.id === id && p.type === 'qa');
+    if (post) {
+      return {
+        id: post.id,
+        author: post.author,
+        title: post.title || '',
+        content: post.content,
+        answers: [],
+        modelTags: post.modelTags,
+        topics: post.topics,
+        likes: post.likes,
+        views: 0,
+        comments: post.comments || 0,
+        isLiked: post.isLiked,
+        createdAt: post.createdAt
+      } as Question;
+    }
+    return undefined;
+  },
 
   getTopic: (id) => get().topics.find(t => t.id === id),
 
@@ -474,6 +499,14 @@ export const useAppStore = create<AppState>((set, get) => ({
           w.id === targetId ? { ...w, comments: (w.comments || 0) + 1 } : w
         );
       }
+      if (targetType === 'question') {
+        stateUpdater.posts = (stateUpdater.posts || state.posts).map(p =>
+          p.id === targetId && p.type === 'qa' ? { ...p, comments: (p.comments || 0) + 1 } : p
+        );
+        stateUpdater.questions = state.questions.map(q =>
+          q.id === targetId ? { ...q, comments: (q.comments || 0) + 1 } : q
+        );
+      }
 
       savePersistedData({ ...get(), ...stateUpdater });
       return stateUpdater;
@@ -504,13 +537,21 @@ export const useAppStore = create<AppState>((set, get) => ({
       const targetType = comment.targetType;
 
       if (targetType === 'post' || targetType === 'work') {
-        stateUpdater.posts = state.posts.map(p =>
+        stateUpdater.posts = (stateUpdater.posts || state.posts).map(p =>
           p.id === targetId ? { ...p, comments: Math.max(0, (p.comments || 0) - 1) } : p
         );
       }
       if (targetType === 'work') {
-        stateUpdater.works = state.works.map(w =>
+        stateUpdater.works = (stateUpdater.works || state.works).map(w =>
           w.id === targetId ? { ...w, comments: Math.max(0, (w.comments || 0) - 1) } : w
+        );
+      }
+      if (targetType === 'question') {
+        stateUpdater.posts = (stateUpdater.posts || state.posts).map(p =>
+          p.id === targetId && p.type === 'qa' ? { ...p, comments: Math.max(0, (p.comments || 0) - 1) } : p
+        );
+        stateUpdater.questions = state.questions.map(q =>
+          q.id === targetId ? { ...q, comments: Math.max(0, (q.comments || 0) - 1) } : q
         );
       }
 
@@ -585,8 +626,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       const newWorks = state.works.map(w =>
         w.id === postId ? { ...w, comments: Math.max(0, (w.comments || 0) + delta) } : w
       );
-      savePersistedData({ ...get(), posts: newPosts, works: newWorks });
-      return { posts: newPosts, works: newWorks };
+      const newQuestions = state.questions.map(q =>
+        q.id === postId ? { ...q, comments: Math.max(0, (q.comments || 0) + delta) } : q
+      );
+      savePersistedData({ ...get(), posts: newPosts, works: newWorks, questions: newQuestions });
+      return { posts: newPosts, works: newWorks, questions: newQuestions };
     });
   }
 }));

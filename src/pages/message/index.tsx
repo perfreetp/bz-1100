@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text } from '@tarojs/components';
-import Taro, { usePullDownRefresh } from '@tarojs/taro';
+import Taro, { usePullDownRefresh, useDidShow } from '@tarojs/taro';
 import { mockMessages } from '@/data/messages';
 import { formatTime } from '@/utils';
 import UserAvatar from '@/components/UserAvatar';
@@ -8,9 +8,13 @@ import useAppStore from '@/store/useAppStore';
 import styles from './index.module.scss';
 
 const MessagePage: React.FC = () => {
-  const { getChatSessions } = useAppStore();
+  const chatSessions = useAppStore(state => state.chatSessions);
   const [messages, setMessages] = useState(mockMessages);
-  const chats = getChatSessions();
+  const [tick, setTick] = useState(0);
+
+  useDidShow(() => {
+    setTick(t => t + 1);
+  });
 
   usePullDownRefresh(() => {
     console.log('[Message] 下拉刷新');
@@ -18,6 +22,13 @@ const MessagePage: React.FC = () => {
       Taro.stopPullDownRefresh();
     }, 1000);
   });
+
+  const chats = useMemo(() => {
+    void tick;
+    return [...chatSessions].sort((a, b) =>
+      new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+    );
+  }, [chatSessions, tick]);
 
   const unreadMentionCount = messages.filter(m => m.type === 'mention' && !m.isRead).length;
   const unreadSystemCount = messages.filter(m => m.type === 'system' && !m.isRead).length;

@@ -15,138 +15,177 @@
   border-bottom: 1rpx solid $color-divider;
 }
 
-.headerInfo {
+.userInfo {
   flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.userMeta {
   margin-left: $spacing-md;
+  min-width: 0;
 }
 
 .userName {
   font-size: $font-size-md;
   font-weight: $font-weight-semibold;
   color: $color-text-primary;
+  @include text-ellipsis;
 }
 
 .userStatus {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
   margin-top: 4rpx;
+
+  &.blocked {
+    color: $color-error;
+  }
 }
 
-.moreIcon {
+.moreBtn {
   padding: $spacing-sm;
-  font-size: 36rpx;
+  font-size: 40rpx;
+  color: $color-text-tertiary;
+
+  :global(text) {
+    font-size: 40rpx;
+    line-height: 1;
+  }
+}
+
+.blockNotice {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm $page-padding;
+  background-color: rgba(239, 68, 68, 0.08);
+  border-bottom: 1rpx solid rgba(239, 68, 68, 0.15);
+}
+
+.blockIcon {
+  font-size: 28rpx;
+  margin-right: $spacing-sm;
+}
+
+.blockText {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-error;
+}
+
+.blockAction {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.messagesWrap {
+  flex: 1;
+  min-height: 0;
 }
 
 .messagesList {
-  flex: 1;
   padding: $spacing-lg $page-padding;
-  overflow-y: auto;
-}
-
-.dateDivider {
-  text-align: center;
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-  margin: $spacing-md 0;
 }
 
 .messageRow {
   display: flex;
   margin-bottom: $spacing-lg;
+  align-items: flex-start;
 
-  &.isMine {
+  &.isMe {
     flex-direction: row-reverse;
   }
 }
 
-.messageAvatar {
-  flex-shrink: 0;
-}
-
 .messageBubble {
   max-width: 70%;
-  margin: 0 $spacing-md;
+  margin: 0 $spacing-sm;
   padding: $spacing-md $spacing-lg;
   border-radius: $radius-lg;
   background-color: $color-bg-card;
-  font-size: $font-size-md;
-  color: $color-text-primary;
-  line-height: $line-height-normal;
   word-break: break-all;
   white-space: pre-wrap;
   box-shadow: $shadow-sm;
 }
 
-.isMine .messageBubble {
+.meBubble {
   background: $color-primary-gradient;
-  color: $color-text-white;
 }
 
-.messageTime {
-  font-size: $font-size-xxs;
-  color: $color-text-tertiary;
-  margin-top: $spacing-xs;
-  padding: 0 $spacing-md;
+.otherBubble {
+  background-color: $color-bg-card;
 }
 
-.isMine .messageTime {
-  text-align: right;
+.msgText {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-normal;
+
+  .meBubble & {
+    color: $color-text-white;
+  }
+}
+
+.msgImage {
+  max-width: 100%;
+  border-radius: $radius-md;
+  display: block;
 }
 
 .inputBar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  gap: $spacing-sm;
   padding: $spacing-md $page-padding;
   padding-bottom: calc(env(safe-area-inset-bottom) + #{$spacing-md});
   background-color: $color-bg-card;
   border-top: 1rpx solid $color-divider;
-  gap: $spacing-md;
 }
 
-.inputWrap {
+.input {
   flex: 1;
-  background-color: $color-bg-hover;
-  border-radius: $radius-md;
-  padding: $spacing-sm $spacing-md;
-  min-height: 72rpx;
-  max-height: 200rpx;
-}
-
-.textarea {
-  width: 100%;
-  min-height: 48rpx;
-  max-height: 168rpx;
-  font-size: $font-size-md;
-  line-height: $line-height-normal;
-  color: $color-text-primary;
-  background-color: transparent;
-}
-
-.iconBtn {
-  width: 72rpx;
   height: 72rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 0 $spacing-lg;
   background-color: $color-bg-hover;
   border-radius: $radius-md;
-  font-size: 36rpx;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+
+  &.inputBlocked {
+    color: $color-text-tertiary;
+  }
+}
+
+.placeholder {
+  color: $color-text-tertiary;
 }
 
 .sendBtn {
+  flex-shrink: 0;
   height: 72rpx;
   padding: 0 $spacing-lg;
+  background: $color-primary-gradient;
+  border-radius: $radius-md;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $color-primary-gradient;
-  border-radius: $radius-md;
-  font-size: $font-size-md;
-  color: $color-text-white;
-  font-weight: $font-weight-medium;
-}
 
-.sendBtn:disabled {
-  background: $color-bg-hover;
-  color: $color-text-tertiary;
+  :global(text) {
+    font-size: $font-size-md;
+    color: $color-text-white;
+    font-weight: $font-weight-medium;
+  }
+
+  &.disabled {
+    background: $color-bg-hover;
+
+    :global(text) {
+      color: $color-text-tertiary;
+    }
+  }
+
+  &:active {
+    opacity: 0.9;
+  }
 }

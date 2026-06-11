@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, ScrollView, Input, Image } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import { formatTime } from '@/utils';
@@ -6,6 +6,7 @@ import useAppStore from '@/store/useAppStore';
 import { defaultCurrentUser } from '@/data/users';
 import UserAvatar from '@/components/UserAvatar';
 import EmptyState from '@/components/EmptyState';
+import classnames from 'classnames';
 import type { User, ChatMessage } from '@/types';
 import styles from './index.module.scss';
 
@@ -13,9 +14,9 @@ const ChatPage: React.FC = () => {
   const routerParams = Taro.getCurrentInstance().router?.params || {};
   const sessionId = routerParams?.id as string;
 
+  const chatSessions = useAppStore(state => state.chatSessions);
   const {
     currentUser,
-    getChatSession,
     sendChatMessage,
     markChatRead,
     toggleChatBlock,
@@ -23,10 +24,14 @@ const ChatPage: React.FC = () => {
   } = useAppStore();
 
   const user: User = currentUser || defaultCurrentUser;
-  const session = getChatSession(sessionId || '');
-
+  const [tick, setTick] = useState(0);
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<any>(null);
+
+  const session = useMemo(() => {
+    void tick;
+    return chatSessions.find(s => s.id === sessionId);
+  }, [chatSessions, sessionId, tick]);
 
   useEffect(() => {
     if (session) {
@@ -39,6 +44,7 @@ const ChatPage: React.FC = () => {
     if (session) {
       markChatRead(session.id);
     }
+    setTick(t => t + 1);
     setTimeout(() => scrollToBottom(), 300);
   });
 

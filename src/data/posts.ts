@@ -41,7 +41,7 @@ export const mockPosts: Post[] = [
     createdAt: '2024-06-09T15:20:00Z'
   },
   {
-    id: 'p3',
+    id: 'q1',
     type: 'qa',
     author: mockUsers[2],
     title: '新手提问：Stable Diffusion如何训练自己的LoRA模型？',
@@ -123,7 +123,7 @@ export const mockPosts: Post[] = [
     createdAt: '2024-06-06T18:20:00Z'
   },
   {
-    id: 'p8',
+    id: 'q2',
     type: 'qa',
     author: mockUsers[3],
     title: 'DALL·E 3和Midjourney V6各有什么优劣？',
@@ -137,6 +137,22 @@ export const mockPosts: Post[] = [
     isLiked: true,
     isCollected: false,
     createdAt: '2024-06-06T09:00:00Z'
+  },
+  {
+    id: 'q3',
+    type: 'qa',
+    author: mockUsers[0],
+    title: 'GPT-4o中文能力相比GPT-4有提升吗？',
+    content: '最近GPT-4o发布了，想问问已经在用的朋友，中文场景下的表现如何？特别是代码、写作、推理这几个方面。',
+    modelTags: [mockModelTags[3], mockModelTags[4]],
+    topics: [mockTopics[7]],
+    likes: 456,
+    comments: 0,
+    shares: 32,
+    collects: 198,
+    isLiked: false,
+    isCollected: false,
+    createdAt: '2024-06-05T10:00:00Z'
   },
   {
     id: 'p9',
