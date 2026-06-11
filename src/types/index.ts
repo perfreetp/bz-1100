@@ -146,6 +146,34 @@ export interface Draft {
   updatedAt: string;
 }
 
+export interface Comment {
+  id: string;
+  targetId: string;
+  targetType: 'post' | 'work' | 'question' | 'answer';
+  author: User;
+  content: string;
+  likes: number;
+  isLiked: boolean;
+  createdAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  content: string;
+  type: 'text' | 'image';
+  createdAt: string;
+}
+
+export interface ChatSession {
+  id: string;
+  user: User;
+  messages: ChatMessage[];
+  unreadCount: number;
+  isBlocked: boolean;
+  lastMessageAt: string;
+}
+
 export interface HistoryItem {
   id: string;
   postId: string;

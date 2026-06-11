@@ -40,7 +40,7 @@ const HomePage: React.FC = () => {
 
   const handleSearch = useCallback(() => {
     console.log('[Home] 点击搜索');
-    Taro.showToast({ title: '搜索功能', icon: 'none' });
+    Taro.navigateTo({ url: '/pages/search/index' });
   }, []);
 
   const handleHotItemClick = useCallback((postId: string, postType: string) => {

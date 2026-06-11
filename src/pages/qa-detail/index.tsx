@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView } from '@tarojs/components';
+import { View, Text, ScrollView, Input } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import { formatTime, formatNumber } from '@/utils';
@@ -10,7 +10,7 @@ import CommentItem from '@/components/CommentItem';
 import EmptyState from '@/components/EmptyState';
 import useAppStore from '@/store/useAppStore';
 import { defaultCurrentUser } from '@/data/users';
-import type { User } from '@/types';
+import type { User, Comment } from '@/types';
 import styles from './index.module.scss';
 
 const QaDetailPage: React.FC = () => {
@@ -25,13 +25,19 @@ const QaDetailPage: React.FC = () => {
     adoptAnswer,
     blockUser,
     currentUser,
-    addHistory
+    addHistory,
+    getComments,
+    addComment,
+    toggleCommentLike,
+    deleteComment
   } = useAppStore();
 
   const user: User = currentUser || defaultCurrentUser;
   const question = getQuestion(questionId);
   const [followed, setFollowed] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [commentsList, setCommentsList] = useState<Comment[]>([]);
 
   useEffect(() => {
     if (question) {
@@ -62,10 +68,17 @@ const QaDetailPage: React.FC = () => {
     }
   }, [questionId, question, isFollowing, addHistory]);
 
+  useEffect(() => {
+    if (question) {
+      setCommentsList(getComments(question.id, 'question'));
+    }
+  }, [questionId, question, getComments]);
+
   useDidShow(() => {
     if (question) {
       setFollowed(isFollowing(question.author.id));
       setLiked(!!question.isLiked);
+      setCommentsList(getComments(question.id, 'question'));
     }
   });
 
@@ -99,6 +112,47 @@ const QaDetailPage: React.FC = () => {
     if (!question) return;
     toggleLike('question', question.id);
     setLiked(!liked);
+  };
+
+  const handleCommentSend = () => {
+    if (!question) return;
+    const text = commentText.trim();
+    if (!text) {
+      Taro.showToast({ title: '请输入评论内容', icon: 'none' });
+      return;
+    }
+    addComment(question.id, 'question', text, user);
+    setCommentText('');
+    setCommentsList(getComments(question.id, 'question'));
+    Taro.showToast({ title: '评论成功', icon: 'success' });
+  };
+
+  const handleCommentLike = (commentId: string) => {
+    toggleCommentLike(commentId);
+    if (question) {
+      setCommentsList(getComments(question.id, 'question'));
+    }
+  };
+
+  const handleCommentDelete = (commentId: string) => {
+    Taro.showModal({
+      title: '删除评论',
+      content: '确定要删除这条评论吗？',
+      confirmColor: '#EF4444',
+      success: (res) => {
+        if (res.confirm) {
+          const success = deleteComment(commentId, user.id);
+          if (success) {
+            if (question) {
+              setCommentsList(getComments(question.id, 'question'));
+            }
+            Taro.showToast({ title: '评论已删除', icon: 'none' });
+          } else {
+            Taro.showToast({ title: '只能删除自己的评论', icon: 'none' });
+          }
+        }
+      }
+    });
   };
 
   const handleMore = () => {
@@ -244,12 +298,61 @@ const QaDetailPage: React.FC = () => {
             <EmptyState icon="💭" title="暂无回答" desc="快来写下第一个回答吧" />
           )}
         </View>
+
+        <View className={styles.comments}>
+          <Text className={styles.sectionTitle}>💬 评论 ({commentsList.length})</Text>
+          {commentsList.length > 0 ? (
+            commentsList.map(c => (
+              <View key={c.id} className={styles.commentItem}>
+                <UserAvatar src={c.author?.avatar || ''} size="md" />
+                <View className={styles.commentBody}>
+                  <View className={styles.commentHead}>
+                    <Text className={styles.commentAuthor}>
+                      {c.author?.name || '匿名用户'}
+                    </Text>
+                    <Text className={styles.commentTime}>{formatTime(c.createdAt)}</Text>
+                  </View>
+                  <Text className={styles.commentContent}>{c.content}</Text>
+                  <View className={styles.commentActions}>
+                    <View
+                      className={classnames(styles.commentAction, c.isLiked && styles.actionLiked)}
+                      onClick={() => handleCommentLike(c.id)}
+                    >
+                      <Text>{c.isLiked ? '❤️' : '🤍'}</Text>
+                      <Text>{c.likes || 0}</Text>
+                    </View>
+                    {c.author.id === user.id && (
+                      <View
+                        className={styles.commentAction}
+                        onClick={() => handleCommentDelete(c.id)}
+                      >
+                        <Text style={{ color: '#EF4444' }}>删除</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <Text style={{ color: '#94A3B8', fontSize: 24 }}>还没有评论，快来发表第一条吧～</Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
 
       <View className={styles.bottomBar}>
-        <View className={styles.inputBar} onClick={handleAnswer}>
-          <Text className={styles.inputIcon}>✍️</Text>
-          <Text className={styles.inputText}>写下你的回答...</Text>
+        <Input
+          className={styles.commentInput}
+          placeholder="说点什么..."
+          placeholderClass={styles.placeholder}
+          value={commentText}
+          onInput={(e) => setCommentText(e.detail.value)}
+          onConfirm={handleCommentSend}
+          confirmType="send"
+        />
+        <View className={styles.answerBtn} onClick={handleAnswer}>
+          <Text>✍️ 写回答</Text>
         </View>
       </View>
     </View>

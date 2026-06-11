@@ -9,6 +9,8 @@ export default defineAppConfig({
     'pages/qa-detail/index',
     'pages/topic-detail/index',
     'pages/chat/index',
+    'pages/chats/index',
+    'pages/search/index',
     'pages/edit-profile/index',
     'pages/settings/index',
     'pages/history/index',

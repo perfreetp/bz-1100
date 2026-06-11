@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro, { usePullDownRefresh } from '@tarojs/taro';
-import { mockMessages, mockChatSessions } from '@/data/messages';
+import { mockMessages } from '@/data/messages';
 import { formatTime } from '@/utils';
 import UserAvatar from '@/components/UserAvatar';
+import useAppStore from '@/store/useAppStore';
 import styles from './index.module.scss';
 
 const MessagePage: React.FC = () => {
+  const { getChatSessions } = useAppStore();
   const [messages, setMessages] = useState(mockMessages);
-  const [chats] = useState(mockChatSessions);
+  const chats = getChatSessions();
 
   usePullDownRefresh(() => {
     console.log('[Message] 下拉刷新');
@@ -19,7 +21,7 @@ const MessagePage: React.FC = () => {
 
   const unreadMentionCount = messages.filter(m => m.type === 'mention' && !m.isRead).length;
   const unreadSystemCount = messages.filter(m => m.type === 'system' && !m.isRead).length;
-  const unreadChatCount = chats.reduce((sum, c) => sum + c.unreadCount, 0);
+  const unreadChatCount = chats.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
 
   const handleChatClick = (chatId: string) => {
     console.log('[Message] 点击会话:', chatId);
@@ -43,7 +45,7 @@ const MessagePage: React.FC = () => {
 
   const handleChatEntryClick = () => {
     console.log('[Message] 查看私信列表');
-    Taro.showToast({ title: '私信列表', icon: 'none' });
+    Taro.navigateTo({ url: '/pages/chats/index' });
   };
 
   return (
@@ -79,30 +81,35 @@ const MessagePage: React.FC = () => {
       <View className={styles.section}>
         <View className={styles.sectionHeader}>
           <Text className={styles.sectionTitle}>私信对话</Text>
-          <Text className={styles.moreLink}>查看全部 ›</Text>
+          <Text className={styles.moreLink} onClick={handleChatEntryClick}>查看全部 ›</Text>
         </View>
         <View className={styles.chatList}>
-          {chats.slice(0, 3).map(chat => (
-            <View
-              key={chat.id}
-              className={styles.chatItem}
-              onClick={() => handleChatClick(chat.id)}
-            >
-              <View className={styles.chatAvatar}>
-                <UserAvatar src={chat.user.avatar} size="lg" />
-                {chat.unreadCount > 0 && (
-                  <View className={styles.unreadBadge}>{chat.unreadCount}</View>
-                )}
-              </View>
-              <View className={styles.chatInfo}>
-                <View className={styles.chatTop}>
-                  <Text className={styles.chatName}>{chat.user.name}</Text>
-                  <Text className={styles.chatTime}>{formatTime(chat.updatedAt)}</Text>
+          {chats.slice(0, 3).map(chat => {
+            const lastMsg = chat.messages[chat.messages.length - 1];
+            return (
+              <View
+                key={chat.id}
+                className={styles.chatItem}
+                onClick={() => handleChatClick(chat.id)}
+              >
+                <View className={styles.chatAvatar}>
+                  <UserAvatar src={chat.user.avatar} size="lg" />
+                  {chat.unreadCount > 0 && (
+                    <View className={styles.unreadBadge}>{chat.unreadCount}</View>
+                  )}
                 </View>
-                <Text className={styles.chatPreview}>{chat.lastMessage}</Text>
+                <View className={styles.chatInfo}>
+                  <View className={styles.chatTop}>
+                    <Text className={styles.chatName}>{chat.user.name}</Text>
+                    <Text className={styles.chatTime}>{formatTime(chat.lastMessageAt)}</Text>
+                  </View>
+                  <Text className={styles.chatPreview}>
+                    {lastMsg ? lastMsg.content : '暂无消息'}
+                  </Text>
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </View>
 

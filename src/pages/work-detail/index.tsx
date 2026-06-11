@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, ScrollView, Image } from '@tarojs/components';
+import { View, Text, ScrollView, Image, Input } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import { formatNumber, formatTime } from '@/utils';
@@ -7,11 +7,10 @@ import UserAvatar from '@/components/UserAvatar';
 import ModelTag from '@/components/ModelTag';
 import TopicTag from '@/components/TopicTag';
 import ActionBar from '@/components/ActionBar';
-import CommentItem from '@/components/CommentItem';
 import EmptyState from '@/components/EmptyState';
 import useAppStore from '@/store/useAppStore';
 import { defaultCurrentUser } from '@/data/users';
-import type { Post, Work, User } from '@/types';
+import type { Post, Work, User, Comment } from '@/types';
 import styles from './index.module.scss';
 
 interface UnifiedContent {
@@ -48,7 +47,11 @@ const WorkDetailPage: React.FC = () => {
     isFollowing,
     blockUser,
     currentUser,
-    addHistory
+    addHistory,
+    getComments,
+    addComment,
+    toggleCommentLike,
+    deleteComment
   } = useAppStore();
 
   const user: User = currentUser || defaultCurrentUser;
@@ -105,6 +108,9 @@ const WorkDetailPage: React.FC = () => {
   const [liked, setLiked] = useState(false);
   const [collected, setCollected] = useState(false);
   const [followed, setFollowed] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [commentsList, setCommentsList] = useState<Comment[]>([]);
+  const [, setTick] = useState(0);
 
   useEffect(() => {
     if (content) {
@@ -142,11 +148,20 @@ const WorkDetailPage: React.FC = () => {
     }
   }, [workId, content, isFollowing, addHistory]);
 
+  useEffect(() => {
+    if (content) {
+      const targetType = content.type === 'work' ? 'work' : 'post';
+      setCommentsList(getComments(content.id, targetType));
+    }
+  }, [workId, content, getComments]);
+
   useDidShow(() => {
     if (content) {
       setLiked(!!content.isLiked);
       setCollected(!!content.isCollected);
       setFollowed(isFollowing(content.author.id));
+      const targetType = content.type === 'work' ? 'work' : 'post';
+      setCommentsList(getComments(content.id, targetType));
     }
   });
 
@@ -154,7 +169,9 @@ const WorkDetailPage: React.FC = () => {
     if (!content) return;
     const likeType = content.type === 'work' ? 'work' : 'post';
     toggleLike(likeType, content.id);
-    setLiked(!liked);
+    const newLiked = !liked;
+    setLiked(newLiked);
+    setTimeout(() => setTick(t => t + 1), 50);
   };
 
   const handleCollect = () => {
@@ -163,6 +180,7 @@ const WorkDetailPage: React.FC = () => {
     toggleCollect(collectType, content.id);
     setCollected(!collected);
     Taro.showToast({ title: collected ? '已取消收藏' : '已收藏', icon: 'none' });
+    setTimeout(() => setTick(t => t + 1), 50);
   };
 
   const handleShare = () => {
@@ -178,9 +196,49 @@ const WorkDetailPage: React.FC = () => {
     Taro.showToast({ title: newFollowed ? '关注成功' : '已取消关注', icon: 'none' });
   };
 
-  const handleComment = () => {
-    console.log('[WorkDetail] 评论:', workId);
-    Taro.showToast({ title: '评论功能', icon: 'none' });
+  const handleCommentSend = () => {
+    if (!content) return;
+    const text = commentText.trim();
+    if (!text) {
+      Taro.showToast({ title: '请输入评论内容', icon: 'none' });
+      return;
+    }
+    const targetType = content.type === 'work' ? 'work' : 'post';
+    addComment(content.id, targetType, text, user);
+    setCommentText('');
+    setCommentsList(getComments(content.id, targetType));
+    setTimeout(() => setTick(t => t + 1), 50);
+    Taro.showToast({ title: '评论成功', icon: 'success' });
+  };
+
+  const handleCommentLike = (commentId: string) => {
+    toggleCommentLike(commentId);
+    if (content) {
+      const targetType = content.type === 'work' ? 'work' : 'post';
+      setCommentsList(getComments(content.id, targetType));
+    }
+  };
+
+  const handleCommentDelete = (commentId: string) => {
+    Taro.showModal({
+      title: '删除评论',
+      content: '确定要删除这条评论吗？',
+      confirmColor: '#EF4444',
+      success: (res) => {
+        if (res.confirm) {
+          const success = deleteComment(commentId, user.id);
+          if (success) {
+            if (content) {
+              const targetType = content.type === 'work' ? 'work' : 'post';
+              setCommentsList(getComments(content.id, targetType));
+            }
+            Taro.showToast({ title: '评论已删除', icon: 'none' });
+          } else {
+            Taro.showToast({ title: '只能删除自己的评论', icon: 'none' });
+          }
+        }
+      }
+    });
   };
 
   const handleMore = () => {
@@ -230,25 +288,6 @@ const WorkDetailPage: React.FC = () => {
       </View>
     );
   }
-
-  const comments = [
-    {
-      id: 'c1',
-      author: { id: 'u2', name: '设计达人', avatar: 'https://picsum.photos/id/65/200/200' },
-      content: '这个prompt太棒了！我也试一下',
-      likes: 23,
-      isLiked: false,
-      createdAt: '2025-01-10T10:30:00Z'
-    },
-    {
-      id: 'c2',
-      author: { id: 'u3', name: '创意新人', avatar: 'https://picsum.photos/id/66/200/200' },
-      content: '请问是用的哪个checkpoint？效果真的赞',
-      likes: 8,
-      isLiked: true,
-      createdAt: '2025-01-10T09:15:00Z'
-    }
-  ];
 
   return (
     <View className={styles.container}>
@@ -327,32 +366,71 @@ const WorkDetailPage: React.FC = () => {
 
         <View className={styles.stats}>
           <Text className={styles.statItem}>❤️ {formatNumber(content.likes || 0)} 点赞</Text>
-          <Text className={styles.statItem}>💬 {formatNumber(content.comments || 0)} 评论</Text>
+          <Text className={styles.statItem}>💬 {formatNumber(commentsList.length)} 评论</Text>
           <Text className={styles.statItem}>🔗 {formatNumber(content.shares || 0)} 转发</Text>
         </View>
 
         <View className={styles.comments}>
-          <Text className={styles.sectionTitle}>💬 评论 ({comments.length})</Text>
-          {comments.map(comment => (
-            <CommentItem key={comment.id} data={comment} />
-          ))}
+          <Text className={styles.sectionTitle}>💬 评论 ({commentsList.length})</Text>
+          {commentsList.length > 0 ? (
+            commentsList.map(c => (
+              <View key={c.id} className={styles.commentItem}>
+                <UserAvatar src={c.author?.avatar || ''} size="md" />
+                <View className={styles.commentBody}>
+                  <View className={styles.commentHead}>
+                    <Text className={styles.commentAuthor}>
+                      {c.author?.name || '匿名用户'}
+                    </Text>
+                    <Text className={styles.commentTime}>{formatTime(c.createdAt)}</Text>
+                  </View>
+                  <Text className={styles.commentContent}>{c.content}</Text>
+                  <View className={styles.commentActions}>
+                    <View
+                      className={classnames(styles.commentAction, c.isLiked && styles.liked)}
+                      onClick={() => handleCommentLike(c.id)}
+                    >
+                      <Text>{c.isLiked ? '❤️' : '🤍'}</Text>
+                      <Text>{c.likes || 0}</Text>
+                    </View>
+                    {c.author.id === user.id && (
+                      <View
+                        className={styles.commentAction}
+                        onClick={() => handleCommentDelete(c.id)}
+                      >
+                        <Text style={{ color: '#EF4444' }}>删除</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <Text style={{ color: '#94A3B8', fontSize: 24 }}>还没有评论，快来发表第一条吧～</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
       <View className={styles.bottomBar}>
-        <View className={styles.commentInput} onClick={handleComment}>
-          <Text className={styles.inputIcon}>💬</Text>
-          <Text className={styles.inputText}>说点什么...</Text>
-        </View>
+        <Input
+          className={styles.commentInput}
+          placeholder="说点什么..."
+          placeholderClass={styles.placeholder}
+          value={commentText}
+          onInput={(e) => setCommentText(e.detail.value)}
+          onConfirm={handleCommentSend}
+          confirmType="send"
+        />
         <ActionBar
           likes={content.likes || 0}
-          comments={content.comments || 0}
+          comments={commentsList.length}
           shares={content.shares || 0}
           collects={content.collects || 0}
           isLiked={liked}
           isCollected={collected}
           onLike={handleLike}
-          onComment={handleComment}
+          onComment={() => {}}
           onShare={handleShare}
           onCollect={handleCollect}
           compact

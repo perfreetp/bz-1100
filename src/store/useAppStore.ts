@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import type { User, Draft, HistoryItem, Post, Work, Question, Topic, ModelTag } from '@/types';
+import type { User, Draft, HistoryItem, Post, Work, Question, Topic, ModelTag, Comment, ChatSession, ChatMessage } from '@/types';
 import { mockPosts } from '@/data/posts';
 import { mockWorks } from '@/data/works';
 import { mockQuestions } from '@/data/questions';
 import { mockTopics } from '@/data/topics';
 import { mockUsers, mockCurrentUser } from '@/data/users';
 
-const STORAGE_KEY = 'ai_creator_hub_store_v1';
+const STORAGE_KEY = 'ai_creator_hub_store_v2';
 
 interface PersistedState {
   drafts: Draft[];
@@ -19,6 +19,8 @@ interface PersistedState {
   joinedTopics: string[];
   darkMode: boolean;
   currentUser: User;
+  comments: Comment[];
+  chatSessions: ChatSession[];
 }
 
 const getPersistedData = (): Partial<PersistedState> => {
@@ -45,7 +47,9 @@ const savePersistedData = (state: Partial<PersistedState>) => {
       following: state.following || [],
       joinedTopics: state.joinedTopics || [],
       darkMode: state.darkMode || false,
-      currentUser: state.currentUser || mockCurrentUser
+      currentUser: state.currentUser || mockCurrentUser,
+      comments: state.comments || [],
+      chatSessions: state.chatSessions || []
     };
     if (typeof Taro !== 'undefined' && Taro.setStorageSync) {
       Taro.setStorageSync(STORAGE_KEY, JSON.stringify(toSave));
@@ -54,6 +58,46 @@ const savePersistedData = (state: Partial<PersistedState>) => {
     console.warn('[Store] 保存持久化数据失败:', e);
   }
 };
+
+const initialComments: Comment[] = [
+  {
+    id: 'cmt-1',
+    targetId: 'w1',
+    targetType: 'work',
+    author: mockUsers[0] || mockCurrentUser,
+    content: '这个prompt太棒了！我也试一下',
+    likes: 23,
+    isLiked: false,
+    createdAt: '2025-01-10T10:30:00Z'
+  },
+  {
+    id: 'cmt-2',
+    targetId: 'w1',
+    targetType: 'work',
+    author: mockUsers[1] || mockCurrentUser,
+    content: '请问是用的哪个checkpoint？效果真的赞',
+    likes: 8,
+    isLiked: true,
+    createdAt: '2025-01-10T09:15:00Z'
+  }
+];
+
+const initialChatSessions: ChatSession[] = mockUsers.slice(0, 3).map((user, idx) => ({
+  id: `chat-${idx + 1}`,
+  user,
+  messages: [
+    {
+      id: `msg-${idx}-1`,
+      senderId: user.id,
+      content: ['你好！看了你的作品真的很棒！', '请问能分享一下Prompt吗？', '最近也在学Midjourney～'][idx],
+      type: 'text' as const,
+      createdAt: new Date(Date.now() - idx * 3600000).toISOString()
+    }
+  ],
+  unreadCount: idx === 0 ? 2 : idx === 1 ? 0 : 1,
+  isBlocked: false,
+  lastMessageAt: new Date(Date.now() - idx * 3600000).toISOString()
+}));
 
 interface AppState {
   currentUser: User;
@@ -68,6 +112,8 @@ interface AppState {
   users: User[];
   following: string[];
   joinedTopics: string[];
+  comments: Comment[];
+  chatSessions: ChatSession[];
 
   toggleDarkMode: () => void;
   setDarkMode: (v: boolean) => void;
@@ -104,6 +150,18 @@ interface AppState {
   toggleLike: (type: 'post' | 'work' | 'question', id: string) => void;
   toggleCollect: (type: 'post' | 'work', id: string) => void;
   adoptAnswer: (questionId: string, answerId: string) => void;
+
+  getComments: (targetId: string, targetType?: 'post' | 'work' | 'question') => Comment[];
+  addComment: (targetId: string, targetType: 'post' | 'work' | 'question', content: string, author: User) => void;
+  toggleCommentLike: (commentId: string) => void;
+  deleteComment: (commentId: string, userId: string) => boolean;
+
+  getChatSessions: () => ChatSession[];
+  getChatSession: (sessionId: string) => ChatSession | undefined;
+  sendChatMessage: (sessionId: string, content: string, senderId: string) => void;
+  markChatRead: (sessionId: string) => void;
+  toggleChatBlock: (sessionId: string, blocked: boolean) => void;
+  updatePostCommentCount: (postId: string, delta: number) => void;
 }
 
 const persisted = getPersistedData();
@@ -121,6 +179,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   users: mockUsers,
   following: persisted.following || ['2', '3'],
   joinedTopics: persisted.joinedTopics || ['1', '2'],
+  comments: persisted.comments && persisted.comments.length > 0 ? persisted.comments : initialComments,
+  chatSessions: persisted.chatSessions && persisted.chatSessions.length > 0 ? persisted.chatSessions : initialChatSessions,
 
   toggleDarkMode: () => {
     set((state) => {
@@ -376,6 +436,157 @@ export const useAppStore = create<AppState>((set, get) => ({
       );
       savePersistedData({ ...get(), questions: newQuestions });
       return { questions: newQuestions };
+    });
+  },
+
+  getComments: (targetId, targetType) => {
+    return get().comments.filter(c => {
+      if (c.targetId !== targetId) return false;
+      if (targetType && c.targetType !== targetType) return false;
+      return true;
+    }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  },
+
+  addComment: (targetId, targetType, content, author) => {
+    set((state) => {
+      const now = new Date().toISOString();
+      const newComment: Comment = {
+        id: `cmt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        targetId,
+        targetType,
+        author,
+        content,
+        likes: 0,
+        isLiked: false,
+        createdAt: now
+      };
+      const newComments = [newComment, ...state.comments];
+
+      const stateUpdater: Partial<AppState> = { comments: newComments };
+
+      if (targetType === 'post' || targetType === 'work') {
+        stateUpdater.posts = state.posts.map(p =>
+          p.id === targetId ? { ...p, comments: (p.comments || 0) + 1 } : p
+        );
+      }
+      if (targetType === 'work') {
+        stateUpdater.works = state.works.map(w =>
+          w.id === targetId ? { ...w, comments: (w.comments || 0) + 1 } : w
+        );
+      }
+
+      savePersistedData({ ...get(), ...stateUpdater });
+      return stateUpdater;
+    });
+  },
+
+  toggleCommentLike: (commentId) => {
+    set((state) => {
+      const newComments = state.comments.map(c =>
+        c.id === commentId
+          ? { ...c, isLiked: !c.isLiked, likes: c.likes + (c.isLiked ? -1 : 1) }
+          : c
+      );
+      savePersistedData({ ...get(), comments: newComments });
+      return { comments: newComments };
+    });
+  },
+
+  deleteComment: (commentId, userId) => {
+    const comment = get().comments.find(c => c.id === commentId);
+    if (!comment || comment.author.id !== userId) return false;
+
+    set((state) => {
+      const newComments = state.comments.filter(c => c.id !== commentId);
+
+      const stateUpdater: Partial<AppState> = { comments: newComments };
+      const targetId = comment.targetId;
+      const targetType = comment.targetType;
+
+      if (targetType === 'post' || targetType === 'work') {
+        stateUpdater.posts = state.posts.map(p =>
+          p.id === targetId ? { ...p, comments: Math.max(0, (p.comments || 0) - 1) } : p
+        );
+      }
+      if (targetType === 'work') {
+        stateUpdater.works = state.works.map(w =>
+          w.id === targetId ? { ...w, comments: Math.max(0, (w.comments || 0) - 1) } : w
+        );
+      }
+
+      savePersistedData({ ...get(), ...stateUpdater });
+      return stateUpdater;
+    });
+
+    return true;
+  },
+
+  getChatSessions: () => get().chatSessions.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()),
+
+  getChatSession: (sessionId) => get().chatSessions.find(s => s.id === sessionId),
+
+  sendChatMessage: (sessionId, content, senderId) => {
+    set((state) => {
+      const now = new Date().toISOString();
+      const newMsg: ChatMessage = {
+        id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        senderId,
+        content,
+        type: 'text',
+        createdAt: now
+      };
+
+      const newSessions = state.chatSessions.map(s => {
+        if (s.id !== sessionId) return s;
+        return {
+          ...s,
+          messages: [...s.messages, newMsg],
+          lastMessageAt: now
+        };
+      });
+
+      savePersistedData({ ...get(), chatSessions: newSessions });
+      return { chatSessions: newSessions };
+    });
+  },
+
+  markChatRead: (sessionId) => {
+    set((state) => {
+      const newSessions = state.chatSessions.map(s =>
+        s.id === sessionId ? { ...s, unreadCount: 0 } : s
+      );
+      savePersistedData({ ...get(), chatSessions: newSessions });
+      return { chatSessions: newSessions };
+    });
+  },
+
+  toggleChatBlock: (sessionId, blocked) => {
+    set((state) => {
+      const newSessions = state.chatSessions.map(s =>
+        s.id === sessionId ? { ...s, isBlocked: blocked } : s
+      );
+      const session = state.chatSessions.find(s => s.id === sessionId);
+      let newBlocked = state.blockedUsers;
+      if (session) {
+        newBlocked = blocked
+          ? [...state.blockedUsers, session.user.id].filter((v, i, a) => a.indexOf(v) === i)
+          : state.blockedUsers.filter(id => id !== session.user.id);
+      }
+      savePersistedData({ ...get(), chatSessions: newSessions, blockedUsers: newBlocked });
+      return { chatSessions: newSessions, blockedUsers: newBlocked };
+    });
+  },
+
+  updatePostCommentCount: (postId, delta) => {
+    set((state) => {
+      const newPosts = state.posts.map(p =>
+        p.id === postId ? { ...p, comments: Math.max(0, (p.comments || 0) + delta) } : p
+      );
+      const newWorks = state.works.map(w =>
+        w.id === postId ? { ...w, comments: Math.max(0, (w.comments || 0) + delta) } : w
+      );
+      savePersistedData({ ...get(), posts: newPosts, works: newWorks });
+      return { posts: newPosts, works: newWorks };
     });
   }
 }));

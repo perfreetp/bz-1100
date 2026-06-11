@@ -6,6 +6,10 @@
   padding-bottom: 160rpx;
 }
 
+.scroll {
+  height: 100vh;
+}
+
 .authorBar {
   display: flex;
   align-items: center;
@@ -26,7 +30,7 @@
   @include text-ellipsis;
 }
 
-.authorMeta {
+.authorDesc {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
   margin-top: 4rpx;
@@ -66,19 +70,14 @@
   margin-bottom: $spacing-md;
 }
 
-.description {
+.desc {
   font-size: $font-size-md;
   color: $color-text-secondary;
   line-height: $line-height-loose;
 }
 
-.imagesSection {
-  padding: $spacing-lg $page-padding;
-  background-color: $color-bg-card;
-  margin-top: $spacing-sm;
-}
-
-.imagesList {
+.imageList {
+  margin-top: $spacing-lg;
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
@@ -89,34 +88,26 @@
   border-radius: $radius-lg;
   overflow: hidden;
   background-color: $color-bg-hover;
-}
-
-.image {
-  width: 100%;
   display: block;
 }
 
-.sectionBlock {
-  background-color: $color-bg-card;
-  margin-top: $spacing-sm;
-  padding: $spacing-lg $page-padding;
-}
-
-.sectionTitle {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: $color-text-primary;
-  margin-bottom: $spacing-md;
+.tags {
+  margin-top: $spacing-lg;
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
 }
 
-.sectionIcon {
-  margin-right: $spacing-xs;
+.topics {
+  margin-top: $spacing-md;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
 }
 
-.promptBox {
-  background-color: $color-bg-secondary;
+.promptSection {
+  margin-top: $spacing-xl;
+  background-color: rgba(124, 58, 237, 0.04);
   border-radius: $radius-md;
   padding: $spacing-lg;
   border-left: 6rpx solid $color-primary;
@@ -131,6 +122,10 @@
   word-break: break-all;
 }
 
+.processSection {
+  margin-top: $spacing-lg;
+}
+
 .processText {
   font-size: $font-size-md;
   color: $color-text-secondary;
@@ -138,39 +133,104 @@
   white-space: pre-wrap;
 }
 
-.tagsWrap {
-  display: flex;
-  flex-wrap: wrap;
-  margin-bottom: $spacing-md;
-}
-
-.topicsWrap {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.commentsSection {
-  background-color: $color-bg-card;
-  margin-top: $spacing-sm;
-  padding: $spacing-lg $page-padding;
-}
-
-.commentsHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: $spacing-md;
-}
-
-.commentsTitle {
+.sectionTitle {
   font-size: $font-size-lg;
   font-weight: $font-weight-bold;
   color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
 }
 
-.commentsCount {
+.stats {
+  display: flex;
+  gap: $spacing-lg;
+  padding: $spacing-md $page-padding;
+  background-color: $color-bg-card;
+  margin-top: $spacing-sm;
+  border-top: 1rpx solid $color-border-light;
+}
+
+.statItem {
   font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.comments {
+  margin-top: $spacing-sm;
+  background-color: $color-bg-card;
+  padding: $spacing-lg $page-padding;
+}
+
+.commentItem {
+  display: flex;
+  gap: $spacing-md;
+  padding: $spacing-md 0;
+  border-bottom: 1rpx solid $color-border-light;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.commentBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.commentHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.commentAuthor {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.commentTime {
+  font-size: $font-size-xs;
   color: $color-text-tertiary;
+}
+
+.commentContent {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  line-height: $line-height-loose;
+  word-break: break-all;
+}
+
+.commentActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+  margin-top: $spacing-sm;
+}
+
+.commentAction {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
+
+  :global(text) {
+    font-size: 22rpx;
+    color: $color-text-tertiary;
+  }
+
+  &:active {
+    background-color: $color-bg-hover;
+  }
+
+  &.liked {
+    :global(text) {
+      color: $color-error;
+    }
+  }
 }
 
 .bottomBar {
@@ -184,57 +244,39 @@
   box-shadow: 0 -2rpx 16rpx rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
-  gap: $spacing-md;
+  gap: $spacing-sm;
 }
 
-.inputBar {
+.commentInput {
   flex: 1;
-  display: flex;
-  align-items: center;
-  height: $button-height-md;
+  height: 72rpx;
   padding: 0 $spacing-lg;
   background-color: $color-bg-hover;
   border-radius: $radius-button;
-}
-
-.inputIcon {
-  font-size: 32rpx;
-  margin-right: $spacing-sm;
-  opacity: 0.5;
-}
-
-.inputText {
   font-size: $font-size-md;
-  color: $color-text-tertiary;
+  color: $color-text-primary;
 }
 
-.actionBtn {
+.placeholder {
+  color: $color-text-tertiary;
+  font-size: $font-size-md;
+}
+
+.moreBtn {
+  width: 56rpx;
+  height: 72rpx;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 4rpx 0;
-  min-width: 64rpx;
+  justify-content: center;
+  flex-shrink: 0;
+
+  :global(text) {
+    font-size: 44rpx;
+    color: $color-text-tertiary;
+    line-height: 1;
+  }
 
   &:active {
     opacity: 0.7;
-  }
-}
-
-.actionIcon {
-  font-size: 40rpx;
-  margin-bottom: 2rpx;
-}
-
-.actionText {
-  font-size: 20rpx;
-  color: $color-text-tertiary;
-}
-
-.active {
-  .actionText.like {
-    color: $color-error;
-  }
-  .actionText.collect {
-    color: $color-warning;
   }
 }
