@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, Input, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
-import { currentUser } from '@/data/users';
+import { currentUser as defaultCurrentUser } from '@/data/users';
 import UserAvatar from '@/components/UserAvatar';
+import useAppStore from '@/store/useAppStore';
+import type { User } from '@/types';
 import styles from './index.module.scss';
 
 const availableBadges = [
@@ -18,10 +20,13 @@ const availableBadges = [
 ];
 
 const EditProfilePage: React.FC = () => {
-  const [name, setName] = useState(currentUser.name);
-  const [bio, setBio] = useState(currentUser.bio || '');
+  const { currentUser } = useAppStore();
+  const user: User = currentUser || defaultCurrentUser;
+
+  const [name, setName] = useState(user?.name || '');
+  const [bio, setBio] = useState(user?.bio || '');
   const [selectedBadges, setSelectedBadges] = useState<string[]>(
-    currentUser.badges?.map(b => b.id) || []
+    user?.badges?.map(b => b.id) || []
   );
 
   const toggleBadge = (badgeId: string) => {
@@ -44,7 +49,7 @@ const EditProfilePage: React.FC = () => {
     <View className={styles.container}>
       <ScrollView scrollY>
         <View className={styles.avatarSection}>
-          <UserAvatar src={currentUser.avatar} size="xl" />
+          <UserAvatar src={user?.avatar} size="xl" />
           <Text className={styles.avatarLabel}>点击更换头像</Text>
         </View>
 
@@ -57,6 +62,7 @@ const EditProfilePage: React.FC = () => {
               onInput={(e) => setName(e.detail.value)}
               placeholder="请输入昵称"
               placeholderStyle="color: #9CA3AF"
+              maxlength={20}
             />
           </View>
           <View className={styles.formRow}>
@@ -72,7 +78,7 @@ const EditProfilePage: React.FC = () => {
           </View>
           <View className={styles.formRow}>
             <Text className={styles.formLabel}>性别</Text>
-            <Text className={styles.formValue}>{currentUser.gender || '保密'}</Text>
+            <Text className={styles.formValue}>{(user as any)?.gender || '保密'}</Text>
             <Text className={styles.formArrow}>›</Text>
           </View>
           <View className={styles.formRow}>

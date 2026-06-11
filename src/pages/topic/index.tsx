@@ -1,14 +1,19 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro, { usePullDownRefresh } from '@tarojs/taro';
+import Taro, { usePullDownRefresh, useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
-import { mockTopics, topicCategories } from '@/data/topics';
+import { topicCategories } from '@/data/topics';
 import { formatCount } from '@/utils';
+import useAppStore from '@/store/useAppStore';
 import styles from './index.module.scss';
 
 const TopicPage: React.FC = () => {
+  const { topics, toggleJoinTopic, isJoinedTopic } = useAppStore();
   const [activeCategory, setActiveCategory] = useState(0);
-  const [topics, setTopics] = useState(mockTopics);
+
+  useDidShow(() => {
+    console.log('[Topic] useDidShow - 话题数:', topics.length);
+  });
 
   usePullDownRefresh(() => {
     console.log('[Topic] 下拉刷新');
@@ -19,30 +24,21 @@ const TopicPage: React.FC = () => {
 
   const handleJoin = useCallback((topicId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setTopics(prev => prev.map(t => {
-      if (t.id === topicId) {
-        const newJoined = !t.isJoined;
-        Taro.showToast({
-          title: newJoined ? '已加入话题' : '已退出话题',
-          icon: 'none'
-        });
-        return {
-          ...t,
-          isJoined: newJoined,
-          membersCount: newJoined ? t.membersCount + 1 : t.membersCount - 1
-        };
-      }
-      return t;
-    }));
-  }, []);
+    toggleJoinTopic(topicId);
+    const newJoined = !isJoinedTopic(topicId);
+    Taro.showToast({
+      title: newJoined ? '已加入话题' : '已退出话题',
+      icon: 'none'
+    });
+  }, [toggleJoinTopic, isJoinedTopic]);
 
   const handleTopicClick = useCallback((topicId: string) => {
     console.log('[Topic] 点击话题:', topicId);
     Taro.navigateTo({ url: `/pages/topic-detail/index?id=${topicId}` });
   }, []);
 
-  const myTopics = topics.filter(t => t.isJoined);
-  const otherTopics = topics.filter(t => !t.isJoined);
+  const myTopics = topics.filter(t => isJoinedTopic(t.id));
+  const otherTopics = topics.filter(t => !isJoinedTopic(t.id));
 
   return (
     <View className={styles.container}>
@@ -95,10 +91,10 @@ const TopicPage: React.FC = () => {
                         {formatCount(topic.postsCount)}帖子 · {formatCount(topic.membersCount)}成员
                       </Text>
                       <View
-                        className={classnames(styles.joinBtn, topic.isJoined && styles.joined)}
+                        className={classnames(styles.joinBtn, isJoinedTopic(topic.id) && styles.joined)}
                         onClick={(e) => handleJoin(topic.id, e)}
                       >
-                        <Text>{topic.isJoined ? '已加入' : '加入'}</Text>
+                        <Text>{isJoinedTopic(topic.id) ? '已加入' : '加入'}</Text>
                       </View>
                     </View>
                   </View>

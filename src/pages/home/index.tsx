@@ -1,18 +1,24 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView } from '@tarojs/components';
-import Taro, { usePullDownRefresh, useReachBottom } from '@tarojs/taro';
+import Taro, { usePullDownRefresh, useReachBottom, useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
-import { mockPosts, hotPosts } from '@/data/posts';
+import { hotPosts } from '@/data/posts';
 import { formatNumber } from '@/utils';
 import PostCard from '@/components/PostCard';
+import useAppStore from '@/store/useAppStore';
+import type { Post } from '@/types';
 import styles from './index.module.scss';
 
 const tabs = ['推荐', '关注', '热门', '作品', '问答', '提示词'];
 
 const HomePage: React.FC = () => {
+  const { posts, following, isBlocked } = useAppStore();
   const [activeTab, setActiveTab] = useState(0);
-  const [posts, setPosts] = useState(mockPosts);
   const [loading, setLoading] = useState(false);
+
+  useDidShow(() => {
+    console.log('[Home] useDidShow - 页面显示，帖子数:', posts.length);
+  });
 
   usePullDownRefresh(() => {
     console.log('[Home] 下拉刷新');
@@ -37,10 +43,42 @@ const HomePage: React.FC = () => {
     Taro.showToast({ title: '搜索功能', icon: 'none' });
   }, []);
 
-  const handleHotItemClick = useCallback((postId: string) => {
-    console.log('[Home] 点击热榜:', postId);
-    Taro.navigateTo({ url: `/pages/work-detail/index?id=${postId}` });
+  const handleHotItemClick = useCallback((postId: string, postType: string) => {
+    console.log('[Home] 点击热榜:', postId, postType);
+    if (postType === 'qa') {
+      Taro.navigateTo({ url: `/pages/qa-detail/index?id=${postId}` });
+    } else {
+      Taro.navigateTo({ url: `/pages/work-detail/index?id=${postId}` });
+    }
   }, []);
+
+  const getFilteredPosts = (): Post[] => {
+    let filtered = posts.filter(p => !isBlocked(p.author.id));
+
+    switch (activeTab) {
+      case 1:
+        filtered = filtered.filter(p => following.includes(p.author.id));
+        break;
+      case 2:
+        filtered = [...filtered].sort((a, b) => b.likes - a.likes);
+        break;
+      case 3:
+        filtered = filtered.filter(p => p.type === 'work');
+        break;
+      case 4:
+        filtered = filtered.filter(p => p.type === 'qa');
+        break;
+      case 5:
+        filtered = filtered.filter(p => p.type === 'prompt');
+        break;
+      default:
+        break;
+    }
+
+    return filtered;
+  };
+
+  const displayPosts = getFilteredPosts();
 
   return (
     <View className={styles.container}>
@@ -82,7 +120,7 @@ const HomePage: React.FC = () => {
                 <View
                   key={post.id}
                   className={styles.hotItem}
-                  onClick={() => handleHotItemClick(post.id)}
+                  onClick={() => handleHotItemClick(post.id, post.type)}
                 >
                   <Text className={classnames(styles.rank, idx < 3 && styles.rankTop)}>
                     {idx + 1}
@@ -98,9 +136,15 @@ const HomePage: React.FC = () => {
         )}
 
         <View className={styles.postsList}>
-          {posts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))}
+          {displayPosts.length > 0 ? (
+            displayPosts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))
+          ) : (
+            <View style={{ padding: 100, alignItems: 'center' }}>
+              <Text style={{ color: '#9CA3AF', fontSize: 28 }}>暂无内容</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>

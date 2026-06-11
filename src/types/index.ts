@@ -142,6 +142,7 @@ export interface Draft {
   images?: string[];
   modelTags?: ModelTag[];
   topics?: Topic[];
+  savedAt: string;
   updatedAt: string;
 }
 

@@ -1,22 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
-import { useAppStore } from '@/store/useAppStore';
-import { mockPosts } from '@/data/posts';
+import useAppStore from '@/store/useAppStore';
+import { defaultCurrentUser } from '@/data/users';
 import { mockWorks } from '@/data/works';
 import { formatCount } from '@/utils';
 import PostCard from '@/components/PostCard';
 import WorkCard from '@/components/WorkCard';
 import EmptyState from '@/components/EmptyState';
+import type { User, Post, Work } from '@/types';
 import styles from './index.module.scss';
 
 const tabs = ['动态', '作品', '收藏'];
-const myPosts = mockPosts.slice(0, 3);
 
 const ProfilePage: React.FC = () => {
-  const currentUser = useAppStore(state => state.currentUser);
+  const { currentUser, posts, works } = useAppStore();
   const [activeTab, setActiveTab] = useState(0);
+
+  const user: User = currentUser || defaultCurrentUser;
+
+  const myPosts = useMemo((): Post[] => {
+    return posts.filter(p => p.author.id === user.id);
+  }, [posts, user.id]);
+
+  const myWorks = useMemo((): Work[] => {
+    return works.filter(w => w.author.id === user.id);
+  }, [works, user.id]);
+
+  const allWorks = myWorks.length > 0 ? myWorks : mockWorks;
 
   const handleSettings = () => {
     console.log('[Profile] 点击设置');
@@ -54,16 +66,16 @@ const ProfilePage: React.FC = () => {
           <View className={styles.avatarWrap}>
             <Image
               className={styles.avatar}
-              src={currentUser.avatar}
+              src={user.avatar}
               mode="aspectFill"
               onError={(e) => console.error('[Profile] 头像加载失败:', e)}
             />
           </View>
           <View className={styles.userMeta}>
-            <Text className={styles.userName}>{currentUser.name}</Text>
-            {currentUser.badges && currentUser.badges.length > 0 && (
+            <Text className={styles.userName}>{user.name}</Text>
+            {user.badges && user.badges.length > 0 && (
               <View className={styles.badges}>
-                {currentUser.badges.map(badge => (
+                {user.badges.map(badge => (
                   <View key={badge.id} className={styles.badgeItem}>
                     <Text className={styles.badgeIcon}>{badge.icon}</Text>
                     <Text className={styles.badgeText}>{badge.name}</Text>
@@ -73,20 +85,20 @@ const ProfilePage: React.FC = () => {
             )}
           </View>
         </View>
-        {currentUser.bio && <Text className={styles.bio}>{currentUser.bio}</Text>}
+        {user.bio && <Text className={styles.bio}>{user.bio}</Text>}
       </View>
 
       <View className={styles.stats}>
         <View className={styles.statItem}>
-          <Text className={styles.statValue}>{formatCount(currentUser.worksCount || 0)}</Text>
+          <Text className={styles.statValue}>{formatCount(myWorks.length)}</Text>
           <Text className={styles.statLabel}>作品</Text>
         </View>
         <View className={styles.statItem}>
-          <Text className={styles.statValue}>{formatCount(currentUser.following || 0)}</Text>
+          <Text className={styles.statValue}>{formatCount(user.following || 0)}</Text>
           <Text className={styles.statLabel}>关注</Text>
         </View>
         <View className={styles.statItem}>
-          <Text className={styles.statValue}>{formatCount(currentUser.followers || 0)}</Text>
+          <Text className={styles.statValue}>{formatCount(user.followers || 0)}</Text>
           <Text className={styles.statLabel}>粉丝</Text>
         </View>
         <View className={styles.statItem}>
@@ -148,13 +160,17 @@ const ProfilePage: React.FC = () => {
 
         {activeTab === 1 && (
           <View className={styles.contentList}>
-            <View className={styles.worksGrid}>
-              {mockWorks.slice(0, 4).map(work => (
-                <View key={work.id} style={{ width: 'calc(50% - 12rpx)' }}>
-                  <WorkCard work={work} />
-                </View>
-              ))}
-            </View>
+            {allWorks.length > 0 ? (
+              <View className={styles.worksGrid}>
+                {allWorks.map(work => (
+                  <View key={work.id} style={{ width: 'calc(50% - 12rpx)' }}>
+                    <WorkCard work={work} />
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <EmptyState icon="🎨" title="还没有作品" desc="快去发布你的第一个作品吧" />
+            )}
           </View>
         )}
 

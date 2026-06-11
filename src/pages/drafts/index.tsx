@@ -14,7 +14,7 @@ const typeNameMap: Record<string, string> = {
 };
 
 const DraftsPage: React.FC = () => {
-  const { drafts, removeDraft } = useAppStore();
+  const { drafts, removeDraft, getDraft, addPost, addWork, addQuestion, currentUser } = useAppStore();
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -36,7 +36,9 @@ const DraftsPage: React.FC = () => {
 
   const handleEdit = (draftId: string) => {
     console.log('[Drafts] 继续编辑草稿:', draftId);
-    Taro.showToast({ title: '继续编辑', icon: 'none' });
+    Taro.navigateTo({
+      url: `/pages/publish/index?draftId=${draftId}`
+    });
   };
 
   const handleDelete = (draftId: string) => {
@@ -71,8 +73,80 @@ const DraftsPage: React.FC = () => {
   };
 
   const handlePublish = (draftId: string) => {
-    console.log('[Drafts] 发布草稿:', draftId);
-    Taro.showToast({ title: '发布成功', icon: 'success' });
+    const draft = getDraft(draftId);
+    if (!draft) return;
+
+    Taro.showModal({
+      title: '发布草稿',
+      content: '确定要发布这篇草稿吗？',
+      confirmColor: '#7C3AED',
+      success: (res) => {
+        if (!res.confirm) return;
+
+        const now = new Date().toISOString();
+        const author = currentUser;
+
+        if (draft.type === 'work') {
+          addWork({
+            id: draft.id,
+            author,
+            title: draft.title || '未命名作品',
+            description: draft.content || '',
+            cover: draft.images?.[0] || '',
+            images: draft.images || [],
+            modelTags: draft.modelTags || [],
+            prompt: '',
+            process: '',
+            topics: draft.topics || [],
+            likes: 0,
+            comments: 0,
+            shares: 0,
+            collects: 0,
+            isLiked: false,
+            isCollected: false,
+            createdAt: now
+          });
+        } else if (draft.type === 'question') {
+          addQuestion({
+            id: draft.id,
+            author,
+            title: draft.title || '未命名问题',
+            content: draft.content || '',
+            answers: [],
+            modelTags: draft.modelTags || [],
+            topics: draft.topics || [],
+            likes: 0,
+            views: 0,
+            isLiked: false,
+            createdAt: now
+          });
+        } else {
+          addPost({
+            id: draft.id,
+            type: 'prompt',
+            author,
+            title: draft.title,
+            content: draft.content || '',
+            images: draft.images,
+            modelTags: draft.modelTags,
+            topics: draft.topics,
+            likes: 0,
+            comments: 0,
+            shares: 0,
+            collects: 0,
+            isLiked: false,
+            isCollected: false,
+            createdAt: now
+          });
+        }
+
+        removeDraft(draftId);
+        Taro.showToast({ title: '发布成功', icon: 'success' });
+        setTimeout(() => {
+          Taro.switchTab({ url: '/pages/home/index' });
+        }, 800);
+      }
+    });
   };
 
   return (

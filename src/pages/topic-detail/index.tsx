@@ -1,20 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
-import { mockTopics } from '@/data/topics';
-import { mockPosts } from '@/data/posts';
 import { formatCount } from '@/utils';
 import PostCard from '@/components/PostCard';
+import EmptyState from '@/components/EmptyState';
+import useAppStore from '@/store/useAppStore';
 import styles from './index.module.scss';
 
 const TopicDetailPage: React.FC = () => {
-  const topic = mockTopics[0];
-  const [joined, setJoined] = useState(topic.isJoined);
-  const [membersCount, setMembersCount] = useState(topic.membersCount);
-  const posts = mockPosts.filter(p => p.topics?.some(t => t.id === topic.id) || true).slice(0, 5);
+  const routerParams = Taro.getCurrentInstance().router?.params || {};
+  const topicId = routerParams?.id || '';
+
+  const { getTopic, toggleJoinTopic, isJoinedTopic, posts, addHistory } = useAppStore();
+
+  const topic = getTopic(topicId);
+  const [joined, setJoined] = useState(false);
+  const [membersCount, setMembersCount] = useState(0);
+
+  useEffect(() => {
+    if (topic) {
+      setJoined(isJoinedTopic(topic.id));
+      setMembersCount(topic.membersCount);
+      Taro.setNavigationBarTitle({ title: `#${topic.name}` });
+
+      addHistory({
+        id: `h-${Date.now()}`,
+        postId: `topic-${topic.id}`,
+        post: {
+          id: topic.id,
+          type: 'prompt',
+          author: { id: 'system', name: topic.name, avatar: '' },
+          title: topic.name,
+          content: topic.description || '',
+          images: topic.cover ? [topic.cover] : [],
+          topics: [topic],
+          likes: 0,
+          comments: topic.postsCount,
+          shares: 0,
+          collects: 0,
+          createdAt: new Date().toISOString()
+        } as any,
+        viewedAt: new Date().toISOString()
+      });
+    }
+  }, [topicId, topic, isJoinedTopic, addHistory]);
+
+  useDidShow(() => {
+    if (topic) {
+      setJoined(isJoinedTopic(topic.id));
+      const t = getTopic(topic.id);
+      if (t) setMembersCount(t.membersCount);
+    }
+  });
 
   const handleJoin = () => {
+    if (!topic) return;
+    toggleJoinTopic(topic.id);
     const newJoined = !joined;
     setJoined(newJoined);
     setMembersCount(newJoined ? membersCount + 1 : membersCount - 1);
@@ -25,9 +67,21 @@ const TopicDetailPage: React.FC = () => {
   };
 
   const handlePost = () => {
-    console.log('[TopicDetail] 发布到话题');
+    console.log('[TopicDetail] 发布到话题:', topicId);
     Taro.switchTab({ url: '/pages/publish/index' });
   };
+
+  const topicPosts = topic
+    ? posts.filter(p => p.topics?.some(t => t.id === topic.id)).slice(0, 5)
+    : [];
+
+  if (!topic) {
+    return (
+      <View className={styles.container} style={{ paddingTop: 200 }}>
+        <EmptyState icon="😕" title="话题不存在" desc="去看看其他精彩话题吧" />
+      </View>
+    );
+  }
 
   return (
     <View className={styles.container}>
@@ -69,9 +123,13 @@ const TopicDetailPage: React.FC = () => {
 
         <View className={styles.postsSection}>
           <Text className={styles.sectionTitle}>话题动态</Text>
-          {posts.map(post => (
-            <PostCard key={post.id} post={post} />
-          ))}
+          {topicPosts.length > 0 ? (
+            topicPosts.map(post => (
+              <PostCard key={post.id} post={post} />
+            ))
+          ) : (
+            <EmptyState icon="📭" title="暂无内容" desc="快来发布第一条动态吧" />
+          )}
         </View>
       </ScrollView>
 

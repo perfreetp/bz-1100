@@ -6,10 +6,27 @@ import useAppStore from '@/store/useAppStore';
 import styles from './index.module.scss';
 
 const SettingsPage: React.FC = () => {
-  const { darkMode, toggleDarkMode, blockedUsers, drafts, history } = useAppStore();
+  const {
+    darkMode,
+    toggleDarkMode,
+    blockedUsers,
+    drafts,
+    history,
+    clearHistory
+  } = useAppStore();
 
-  const handleDarkMode = () => {
-    toggleDarkMode();
+  const handleClearHistory = () => {
+    Taro.showModal({
+      title: '清除浏览历史',
+      content: '确定要清除所有浏览历史吗？',
+      confirmColor: '#7C3AED',
+      success: (res) => {
+        if (res.confirm) {
+          clearHistory();
+          Taro.showToast({ title: '历史已清除', icon: 'success' });
+        }
+      }
+    });
   };
 
   const handleClearCache = () => {
@@ -51,12 +68,16 @@ const SettingsPage: React.FC = () => {
     Taro.showToast({ title: `屏蔽列表：${blockedUsers.length}人`, icon: 'none' });
   };
 
+  const handleNavigate = (url: string) => {
+    Taro.navigateTo({ url });
+  };
+
   return (
     <View className={styles.container}>
       <ScrollView scrollY>
         <Text className={styles.sectionTitle}>通用设置</Text>
         <View className={styles.sectionGroup}>
-          <View className={styles.settingRow} onClick={handleDarkMode}>
+          <View className={styles.settingRow} onClick={toggleDarkMode}>
             <View className={styles.settingIcon}>🌙</View>
             <View className={styles.settingContent}>
               <Text className={styles.settingLabel}>夜间模式</Text>
@@ -112,7 +133,7 @@ const SettingsPage: React.FC = () => {
 
         <Text className={styles.sectionTitle}>存储与数据</Text>
         <View className={styles.sectionGroup}>
-          <View className={styles.settingRow}>
+          <View className={styles.settingRow} onClick={() => handleNavigate('/pages/drafts/index')}>
             <View className={styles.settingIcon}>📦</View>
             <View className={styles.settingContent}>
               <Text className={styles.settingLabel}>我的草稿</Text>
@@ -120,7 +141,7 @@ const SettingsPage: React.FC = () => {
             <Text className={styles.settingValue}>{drafts.length}篇</Text>
             <Text className={styles.settingArrow}>›</Text>
           </View>
-          <View className={styles.settingRow}>
+          <View className={styles.settingRow} onClick={() => handleNavigate('/pages/history/index')}>
             <View className={styles.settingIcon}>📜</View>
             <View className={styles.settingContent}>
               <Text className={styles.settingLabel}>浏览历史</Text>
@@ -128,8 +149,15 @@ const SettingsPage: React.FC = () => {
             <Text className={styles.settingValue}>{history.length}条</Text>
             <Text className={styles.settingArrow}>›</Text>
           </View>
-          <View className={styles.settingRow} onClick={handleClearCache}>
+          <View className={styles.settingRow} onClick={handleClearHistory}>
             <View className={styles.settingIcon}>🧹</View>
+            <View className={styles.settingContent}>
+              <Text className={styles.settingLabel}>清除浏览历史</Text>
+            </View>
+            <Text className={styles.settingArrow}>›</Text>
+          </View>
+          <View className={styles.settingRow} onClick={handleClearCache}>
+            <View className={styles.settingIcon}>💾</View>
             <View className={styles.settingContent}>
               <Text className={styles.settingLabel}>清除缓存</Text>
             </View>
